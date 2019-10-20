@@ -1,0 +1,24 @@
+---
+title: "What is the Impact of Transit Developments and Shutdowns on Urban Mobility?"
+output: html_notebook
+---
+
+```{r setup}
+library(tidyverse)
+library(sf)
+
+travel_times <- read_csv(file = "data/boston-censustracts-2019-3-All-HourlyAggregate.csv")
+shapes <- st_read(dsn = "data/boston_censustracts.json")
+```
+
+Data is taken from [here](https://movement.uber.com/?lang=en-US) from the "Travel Times" dataset for Boston. We want to look at how different transit policies impact the travel times within a city.
+
+Some possible events to look at:
+* https://www.mass.gov/news/governor-baker-mbta-launch-ride-pilot-program-with-uber-lyft
+* https://www.wbur.org/news/2015/10/07/mbta-announces-nonstop-commuter-rail-trips-between-worcester-and-boston
+* https://www.wbur.org/news/2016/03/21/mbta-government-center-reopens
+* https://boston.cbslocal.com/2018/04/02/mbta-early-morning-bus-service-routes/
+* https://boston.cbslocal.com/2018/04/21/mbta-silver-line-chelsea-boston/
+* http://www.wbur.org/news/2018/05/22/mbta-summer-weekend-commuter-rail-ten-bucks / https://www.telegram.com/news/20180906/commuter-rail-extends-10-weekend-fare-until-dec-9 / https://commonwealthmagazine.org/transportation/t-to-relaunch-10-weekend-commuter-rail-fare/
+
+I simply found these looking at the "Service cuts and improvements" section of https://en.wikipedia.org/wiki/History_of_the_MBTA. We could also look at other things adjacent like fares or major events! Of course we're a bit restricted by the times we have in each city, but feel free to check out another city, another time, or another event/shock. The event doesn't need to be public transit related but it should have an effect on how people move around or make decisions around travel.
