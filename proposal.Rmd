@@ -1,19 +1,22 @@
 ---
 title: "What is the Impact of Transit Developments and Shutdowns on Urban Mobility?"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
-```{r setup}
-library(tidyverse)
-library(sf)
-
-travel_times <- read_csv(file = "data/boston-censustracts-2019-3-All-HourlyAggregate.csv")
-shapes <- st_read(dsn = "data/boston_censustracts.json")
+```{r setup, include=FALSE}
+# library(tidyverse)
+# library(sf)
+# 
+# travel_times <- read_csv(file = "data/boston-censustracts-2019-3-All-HourlyAggregate.csv")
+# shapes <- st_read(dsn = "data/boston_censustracts.json")
 ```
 
 Data is taken from [here](https://movement.uber.com/?lang=en-US) from the "Travel Times" dataset for Boston. We want to look at how different transit policies impact the travel times within a city.
 
 Some possible events to look at:
+
 * https://www.mass.gov/news/governor-baker-mbta-launch-ride-pilot-program-with-uber-lyft
 * https://www.wbur.org/news/2015/10/07/mbta-announces-nonstop-commuter-rail-trips-between-worcester-and-boston
 * https://www.wbur.org/news/2016/03/21/mbta-government-center-reopens
