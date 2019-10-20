@@ -1,4 +1,4 @@
-# transit_urban_mobility
+# Public Transit and Urban Mobility
 STAT494: Correlated Data project. 
 
 Question: How do certain transit policies affect mobility across a city?
