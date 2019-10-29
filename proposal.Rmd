@@ -1,5 +1,5 @@
 ---
-title: "What is the Impact of Transit Developments and Shutdowns on Urban Mobility?"
+title: "Impact of the 2016 Presidential Election on Urban Mobility: Who is Affected the Most?"
 output:
   html_document:
     df_print: paged
@@ -15,13 +15,12 @@ output:
 
 Data is taken from [here](https://movement.uber.com/?lang=en-US) from the "Travel Times" dataset for Boston. We want to look at how different transit policies impact the travel times within a city.
 
-Some possible events to look at:
+This research will first look at how travel times across Washington D.C. generally vary before and during the 2016 presidential election. We will then explore variations of this across different neighborhoods, income, and racial divides to examine bottlenecks in mobility for different identity groups. This research will contribute in explaining and interpreting variations in urban mobility during major events. It adds to the limited literature covering congestion capacity during agglomerating events such as the Olympics, natural disasters, and major holidays. It also aims to contribute by identifying heterogeneity across different socioeconomic barriers to better inform urban policy and planning aiming for equitable mobility.
 
-* https://www.mass.gov/news/governor-baker-mbta-launch-ride-pilot-program-with-uber-lyft
-* https://www.wbur.org/news/2015/10/07/mbta-announces-nonstop-commuter-rail-trips-between-worcester-and-boston
-* https://www.wbur.org/news/2016/03/21/mbta-government-center-reopens
-* https://boston.cbslocal.com/2018/04/02/mbta-early-morning-bus-service-routes/
-* https://boston.cbslocal.com/2018/04/21/mbta-silver-line-chelsea-boston/
-* http://www.wbur.org/news/2018/05/22/mbta-summer-weekend-commuter-rail-ten-bucks / https://www.telegram.com/news/20180906/commuter-rail-extends-10-weekend-fare-until-dec-9 / https://commonwealthmagazine.org/transportation/t-to-relaunch-10-weekend-commuter-rail-fare/
+## Introduction
 
-I simply found these looking at the "Service cuts and improvements" section of https://en.wikipedia.org/wiki/History_of_the_MBTA. We could also look at other things adjacent like fares or major events! Of course we're a bit restricted by the times we have in each city, but feel free to check out another city, another time, or another event/shock. The event doesn't need to be public transit related but it should have an effect on how people move around or make decisions around travel.
+* Explain traffic/congestion/mobility with statistics etc.
+* Explain how these factors are magnified during a major event like the Olympics
+* Tie in how different people may be affected (?)
+* Start introducing the 2016 Election
+
