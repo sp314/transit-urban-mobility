@@ -6,11 +6,10 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-# library(tidyverse)
-# library(sf)
-# 
-# travel_times <- read_csv(file = "data/boston-censustracts-2019-3-All-HourlyAggregate.csv")
-# shapes <- st_read(dsn = "data/boston_censustracts.json")
+library(tidyverse)
+library(sf)
+
+travel_times <- read_csv(file = "data/washington_DC_travel_times.csv")
 ```
 
 Data is taken from [here](https://movement.uber.com/?lang=en-US) from the "Travel Times" dataset for Boston. We want to look at how different transit policies impact the travel times within a city.
