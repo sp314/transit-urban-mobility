@@ -1,6 +1,6 @@
-# Public Transit and Urban Mobility
+# Impact of the 2016 Presidential Election on Urban Mobility: Who is Affected the Most?
 STAT494: Correlated Data project. 
 
-Question: How do certain transit policies affect mobility across a city?
+Question: How do major events like the 2016 presidential election affect travel times across a city? For whom is mobility restricted the most?
 
 Data provided by [Uber Movement](https://movement.uber.com)
