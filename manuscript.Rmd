@@ -8,8 +8,12 @@ output:
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(sf)
+load("data/travel_times.RData")
+theme_map <- theme_void()
 
-travel_times <- read_csv(file = "data/washington_DC_travel_times.csv")
+travel_times <- travel_times %>%
+	mutate(origin_id = factor(origin_id),
+				 dest_id = factor(dest_id))
 ```
 
 Data is taken from [here](https://movement.uber.com/?lang=en-US) from the "Travel Times" dataset for Boston. We want to look at how different transit policies impact the travel times within a city.
@@ -22,4 +26,21 @@ This research will first look at how travel times across Washington D.C. general
 * Explain how these factors are magnified during a major event like the Olympics
 * Tie in how different people may be affected (?)
 * Start introducing the 2016 Election
+
+```{r join_sf}
+DC_census <- st_read("data/washington_DC_censustracts.json") %>%
+	select("id" = MOVEMENT_ID, geometry) %>%
+	mutate(id = factor(id, levels = levels(travel_times$dest_id)))
+
+travel_time_sf <- left_join(x = travel_times, y = DC_census, by = c("dest_id" = "id")) %>%
+	st_as_sf()
+```
+
+```{r map}
+travel_time_sf %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = mean_travel_time)) +
+	theme_map +
+	scale_fill_viridis_c(direction = -1)
+```
 
