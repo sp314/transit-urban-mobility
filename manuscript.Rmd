@@ -8,6 +8,7 @@ output:
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(sf)
+library(rgdal)
 load("data/travel_times.RData")
 theme_map <- theme_void()
 
@@ -33,7 +34,8 @@ DC_census <- st_read("data/washington_DC_censustracts.json") %>%
 	mutate(id = factor(id, levels = levels(travel_times$dest_id)))
 
 travel_time_sf <- left_join(x = travel_times, y = DC_census, by = c("dest_id" = "id")) %>%
-	st_as_sf()
+	st_as_sf() %>%
+	st_transform(crs = 102285)
 ```
 
 ```{r map}
