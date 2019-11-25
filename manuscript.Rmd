@@ -7,7 +7,6 @@ output:
 
 ```{r setup, include=FALSE}
 library(tidyverse)
-library(dplyr)
 library(sf)
 library(rgdal)
 library(tigris)
@@ -16,20 +15,18 @@ library(spdep)
 #tigris package - contains roads for DC
 options(tigris_class="sf")
 
-load("data/travel_times.RData")
+load("data/travel_times_census_join.RData")
+load("data/dc_acs_tracts.RData")
 theme_map <- theme_void()
 
-demographic_data <- read.csv("DC_demographic_data.csv", header = FALSE)
+# Could also directly import census demographic data using tidycensus package
+demographic_data <- read.csv("data/DC_demographic_data.csv", header = FALSE)
 names <- unlist(demographic_data[2,])
 demographic_data <- demographic_data %>% 
   slice(3:8096)
 head(demographic_data)
 colnames(demographic_data) <- names
 head(demographic_data)
-
-travel_times <- travel_times %>%
-	mutate(origin_id = factor(origin_id),
-				 dest_id = factor(dest_id))
 
 #primary_secondary_roads includes interstates and other highways in DC
 dc_roads <- primary_secondary_roads(state="DC") %>%
@@ -51,16 +48,12 @@ According to the New York Times, crowd scientists estimated 470,000 people were 
 https://www.nytimes.com/interactive/2017/01/22/us/politics/womens-march-trump-crowd-estimates.html
 
 ```{r join_sf}
-dc_census <- st_read("data/uber_dc_tracts.json") %>%
-	select("id" = MOVEMENT_ID, geometry) %>%
-	mutate(id = factor(id, levels = levels(travel_times$dest_id)))
-
-travel_time_sf <- left_join(x = travel_times, y = dc_census, by = c("dest_id" = "id")) %>%
+travel_time_sf <- left_join(x = travel_times_census_join, y = dc_acs_tracts, by = "GEOID") %>%
 	st_as_sf() %>%
 	st_transform(crs = 102285)
 ```
 
-```{r map}
+```{r map_travel_timne}
 travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	ggplot() +
 	geom_sf(mapping = aes(fill = mean_travel_time)) +
@@ -81,5 +74,13 @@ mean((travel_times %>% filter(year == 2017, month == 1, week == 3))$mean_travel_
 
 ```{r}
 mean((travel_times %>% filter(year == 2016, month == 9, week == 3))$mean_travel_time)
+```
+
+```{r map_acs}
+travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = med_incomeE)) +
+	theme_map +
+	scale_fill_viridis_c()
 ```
 

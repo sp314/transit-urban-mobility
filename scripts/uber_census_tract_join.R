@@ -48,4 +48,5 @@ travel_time_census_join <- travel_time_census_join_sf %>%
 # 	geom_sf()
 
 # # save joined dataset and the census tracts
-save(travel_time_census_join, file = "travel_time_census_join.RData")
+# save(travel_time_census_join, file = "travel_time_census_join.RData")
+# save(uber_tracts, file = "dc_census_tracts.RData")
