@@ -4,7 +4,8 @@ census_geocode <- function(address,type,secondary,state){
 	library(jsonlite)
 	library(RCurl)
 	
-	addy <- paste("street=",gsub(" ","+",address),sep="")
+	address <- paste("street=",gsub(" ","+",address),sep="")
+	
 	if(type=="z"){
 		wild <- paste("zip=",gsub(" ","+",secondary),sep="")
 	}else{
