@@ -11,7 +11,9 @@ library(sf)
 library(rgdal)
 library(tigris)
 library(spdep)
-library(sf)
+
+#tigris package - contains roads for DC
+options(tigris_class="sf")
 
 load("data/travel_times.RData")
 theme_map <- theme_void()
@@ -20,12 +22,6 @@ travel_times <- travel_times %>%
 	mutate(origin_id = factor(origin_id),
 				 dest_id = factor(dest_id))
 
-head(travel_times)
-```
-
-```{r}
-#tigris package - contains roads for DC
-options(tigris_class="sf")
 #primary_secondary_roads includes interstates and other highways in DC
 dc_roads <- primary_secondary_roads(state="DC") %>%
 	st_transform(crs = 102285)
@@ -46,11 +42,11 @@ According to the New York Times, crowd scientists estimated 470,000 people were 
 https://www.nytimes.com/interactive/2017/01/22/us/politics/womens-march-trump-crowd-estimates.html
 
 ```{r join_sf}
-DC_census <- st_read("data/washington_DC_censustracts.json") %>%
+dc_census <- st_read("data/uber_dc_tracts.json") %>%
 	select("id" = MOVEMENT_ID, geometry) %>%
 	mutate(id = factor(id, levels = levels(travel_times$dest_id)))
 
-travel_time_sf <- left_join(x = travel_times, y = DC_census, by = c("dest_id" = "id")) %>%
+travel_time_sf <- left_join(x = travel_times, y = dc_census, by = c("dest_id" = "id")) %>%
 	st_as_sf() %>%
 	st_transform(crs = 102285)
 ```
@@ -77,7 +73,4 @@ mean((travel_times %>% filter(year == 2017, month == 1, week == 3))$mean_travel_
 ```{r}
 mean((travel_times %>% filter(year == 2016, month == 9, week == 3))$mean_travel_time)
 ```
-
-
-
 
