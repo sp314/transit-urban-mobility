@@ -8,6 +8,8 @@ output:
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(sf)
+library(rgdal)
+
 load("data/travel_times.RData")
 theme_map <- theme_void()
 
@@ -27,7 +29,6 @@ roads<-st_read("dc_roads")
 #row.names(roads) <- as.character(roads$FIPSNO)
 #plot(st_geometry(roads), axes=TRUE)
 
-
 #tigris package - contains roads for DC
 options(tigris_class="sf")
 #primary_secondary_roads includes interstates and other highways in DC
@@ -35,8 +36,6 @@ dc <- tigris::primary_secondary_roads(state="DC")
 dc
 plot(dc)
 ```
-
-
 
 Data is taken from [here](https://movement.uber.com/?lang=en-US) from the "Travel Times" dataset for Boston. We want to look at how different transit policies impact the travel times within a city.
 
@@ -60,7 +59,10 @@ DC_census <- st_read("data/washington_DC_censustracts.json") %>%
 DC_census
 
 travel_time_sf <- left_join(x = travel_times, y = DC_census, by = c("dest_id" = "id")) %>%
-	st_as_sf()
+	st_as_sf() %>%
+	st_transform(crs = 102285) 
+
+st_centroid(x = travel_time_sf)
 ```
 
 
