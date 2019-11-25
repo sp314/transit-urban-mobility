@@ -9,6 +9,9 @@ output:
 library(tidyverse)
 library(sf)
 library(rgdal)
+library(tigris)
+library(spdep)
+library(sf)
 
 load("data/travel_times.RData")
 theme_map <- theme_void()
@@ -21,20 +24,11 @@ head(travel_times)
 ```
 
 ```{r}
-#Attempting to add roads in this code chunk
-
-library(spdep)
-library(sf)
-roads<-st_read("dc_roads")
-#row.names(roads) <- as.character(roads$FIPSNO)
-#plot(st_geometry(roads), axes=TRUE)
-
 #tigris package - contains roads for DC
 options(tigris_class="sf")
 #primary_secondary_roads includes interstates and other highways in DC
-dc <- tigris::primary_secondary_roads(state="DC")
-dc
-plot(dc)
+dc_roads <- primary_secondary_roads(state="DC") %>%
+	st_transform(crs = 102285)
 ```
 
 Data is taken from [here](https://movement.uber.com/?lang=en-US) from the "Travel Times" dataset for Boston. We want to look at how different transit policies impact the travel times within a city.
@@ -56,27 +50,13 @@ DC_census <- st_read("data/washington_DC_censustracts.json") %>%
 	select("id" = MOVEMENT_ID, geometry) %>%
 	mutate(id = factor(id, levels = levels(travel_times$dest_id)))
 
-DC_census
-
 travel_time_sf <- left_join(x = travel_times, y = DC_census, by = c("dest_id" = "id")) %>%
 	st_as_sf() %>%
-	st_transform(crs = 102285) 
-
-st_centroid(x = travel_time_sf)
+	st_transform(crs = 102285)
 ```
-
-
 
 ```{r map}
-travel_time_sf %>%
-	ggplot() +
-	geom_sf(mapping = aes(fill = mean_travel_time)) +
-	theme_map +
-	scale_fill_viridis_c(direction = -1)
-```
-
-```{r}
-travel_time_sf %>% filter(year == 2017, month == 1, week == 3)%>%
+travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	ggplot() +
 	geom_sf(mapping = aes(fill = mean_travel_time)) +
 	theme_map +
@@ -85,6 +65,7 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 3)%>%
 travel_time_sf %>% filter(year == 2017, month == 1, week == 4)%>%
 	ggplot() +
 	geom_sf(mapping = aes(fill = mean_travel_time)) +
+	geom_sf(data = dc_roads) +
 	theme_map +
 	scale_fill_viridis_c(direction = -1)
 ```
