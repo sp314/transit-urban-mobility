@@ -16,6 +16,25 @@ theme_map <- theme_void()
 travel_times <- travel_times %>%
 	mutate(origin_id = factor(origin_id),
 				 dest_id = factor(dest_id))
+
+head(travel_times)
+```
+
+```{r}
+#Attempting to add roads in this code chunk
+
+library(spdep)
+library(sf)
+roads<-st_read("dc_roads")
+#row.names(roads) <- as.character(roads$FIPSNO)
+#plot(st_geometry(roads), axes=TRUE)
+
+#tigris package - contains roads for DC
+options(tigris_class="sf")
+#primary_secondary_roads includes interstates and other highways in DC
+dc <- tigris::primary_secondary_roads(state="DC")
+dc
+plot(dc)
 ```
 
 Data is taken from [here](https://movement.uber.com/?lang=en-US) from the "Travel Times" dataset for Boston. We want to look at how different transit policies impact the travel times within a city.
@@ -29,10 +48,15 @@ This research will first look at how travel times across Washington D.C. general
 * Tie in how different people may be affected (?)
 * Start introducing the 2016 Election
 
+According to the New York Times, crowd scientists estimated 470,000 people were at the women’s march in Washington on January 21st, 2017. They say that the crowd at the women’s march was about three times the size of the crowd at the Trump inauguration, making the crowd roughly 160,000 people at the Trump inauguration. 
+https://www.nytimes.com/interactive/2017/01/22/us/politics/womens-march-trump-crowd-estimates.html
+
 ```{r join_sf}
 DC_census <- st_read("data/washington_DC_censustracts.json") %>%
 	select("id" = MOVEMENT_ID, geometry) %>%
 	mutate(id = factor(id, levels = levels(travel_times$dest_id)))
+
+DC_census
 
 travel_time_sf <- left_join(x = travel_times, y = DC_census, by = c("dest_id" = "id")) %>%
 	st_as_sf() %>%
@@ -41,6 +65,8 @@ travel_time_sf <- left_join(x = travel_times, y = DC_census, by = c("dest_id" = 
 st_centroid(x = travel_time_sf)
 ```
 
+
+
 ```{r map}
 travel_time_sf %>%
 	ggplot() +
@@ -48,4 +74,29 @@ travel_time_sf %>%
 	theme_map +
 	scale_fill_viridis_c(direction = -1)
 ```
+
+```{r}
+travel_time_sf %>% filter(year == 2017, month == 1, week == 3)%>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = mean_travel_time)) +
+	theme_map +
+	scale_fill_viridis_c(direction = -1)
+
+travel_time_sf %>% filter(year == 2017, month == 1, week == 4)%>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = mean_travel_time)) +
+	theme_map +
+	scale_fill_viridis_c(direction = -1)
+```
+
+```{r}
+mean((travel_times %>% filter(year == 2017, month == 1, week == 3))$mean_travel_time)
+```
+
+```{r}
+mean((travel_times %>% filter(year == 2016, month == 9, week == 3))$mean_travel_time)
+```
+
+
+
 
