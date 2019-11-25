@@ -14,20 +14,28 @@ library(rgdal)
 load("data/travel_times.RData")
 theme_map <- theme_void()
 
-demographic_data <- read.csv("DC_demographic_data.csv", header = FALSE)
-names <- unlist(demographic_data[2,])
-demographic_data <- demographic_data %>% 
-  slice(3:8096)
-head(demographic_data)
-colnames(demographic_data) <- names
-head(demographic_data)
-
 travel_times <- travel_times %>%
 	mutate(origin_id = factor(origin_id),
 				 dest_id = factor(dest_id))
 
 head(travel_times)
 ```
+
+
+```{r}
+demographic_data <- read.csv("DC_demographic_data.csv", header = FALSE)
+names <- unlist(demographic_data[2,])
+demographic_data <- demographic_data %>% 
+  slice(3:8096)
+head(demographic_data)
+colnames(demographic_data) <- names
+demographic_data <- demographic_data %>% 
+  mutate(state = substr(geo2010, start = 1, stop = 2)) %>% 
+  mutate(tract_number = substr(geo2010, start = 10, stop = 1000))
+head(demographic_data)
+```
+
+
 
 ```{r}
 #Attempting to add roads in this code chunk
@@ -59,6 +67,7 @@ This research will first look at how travel times across Washington D.C. general
 
 According to the New York Times, crowd scientists estimated 470,000 people were at the women’s march in Washington on January 21st, 2017. They say that the crowd at the women’s march was about three times the size of the crowd at the Trump inauguration, making the crowd roughly 160,000 people at the Trump inauguration. 
 https://www.nytimes.com/interactive/2017/01/22/us/politics/womens-march-trump-crowd-estimates.html
+The 2010 data set of demographic information by census tracts comes from Urban Institute: https://greaterdc.urban.org/data-explorer?geography=tr10&indicator=PctBlackNonHispBridge&topic=population&year=2012-16
 
 ```{r join_sf}
 DC_census <- st_read("data/washington_DC_censustracts.json") %>%
@@ -98,13 +107,7 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 4)%>%
 	scale_fill_viridis_c(direction = -1)
 ```
 
-```{r}
-mean((travel_times %>% filter(year == 2017, month == 1, week == 3))$mean_travel_time)
-```
 
-```{r}
-mean((travel_times %>% filter(year == 2016, month == 9, week == 3))$mean_travel_time)
-```
 
 
 
