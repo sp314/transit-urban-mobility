@@ -7,6 +7,7 @@ output:
 
 ```{r setup, include=FALSE}
 library(tidyverse)
+library(dplyr)
 library(sf)
 library(rgdal)
 library(tigris)
@@ -17,6 +18,14 @@ options(tigris_class="sf")
 
 load("data/travel_times.RData")
 theme_map <- theme_void()
+
+demographic_data <- read.csv("DC_demographic_data.csv", header = FALSE)
+names <- unlist(demographic_data[2,])
+demographic_data <- demographic_data %>% 
+  slice(3:8096)
+head(demographic_data)
+colnames(demographic_data) <- names
+head(demographic_data)
 
 travel_times <- travel_times %>%
 	mutate(origin_id = factor(origin_id),
