@@ -23,16 +23,17 @@ head(travel_times)
 
 
 ```{r}
-demographic_data <- read.csv("DC_demographic_data.csv", header = FALSE)
-names <- unlist(demographic_data[2,])
-demographic_data <- demographic_data %>% 
+demographic_data_big <- read.csv("DC_demographic_data.csv", header = FALSE)
+names <- unlist(demographic_data_big[2,])
+demographic_data_big <- demographic_data_big %>% 
   slice(3:8096)
-head(demographic_data)
-colnames(demographic_data) <- names
-demographic_data <- demographic_data %>% 
+head(demographic_data_big)
+colnames(demographic_data_big) <- names
+demographic_data_big <- demographic_data_big %>% 
   mutate(state = substr(geo2010, start = 1, stop = 2)) %>% 
   mutate(tract_number = substr(geo2010, start = 10, stop = 1000))
-head(demographic_data)
+head(demographic_data_big)
+
 ```
 
 
