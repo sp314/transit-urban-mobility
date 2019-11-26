@@ -7,11 +7,16 @@ output:
 
 ```{r setup, include=FALSE}
 library(tidyverse)
-library(dplyr)
 library(sf)
 library(rgdal)
+library(tigris)
+library(spdep)
 
-load("data/travel_times.RData")
+#tigris package - contains roads for DC
+options(tigris_class="sf")
+
+load("data/travel_times_census_join.RData")
+load("data/dc_acs_tracts.RData")
 theme_map <- theme_void()
 
 travel_times <- travel_times %>%
@@ -25,12 +30,12 @@ head(travel_times)
 ```{r}
 demographic_data_big <- read.csv("DC_demographic_data.csv", header = FALSE)
 names <- unlist(demographic_data_big[2,])
-demographic_data_big <- demographic_data_big %>% 
+demographic_data_big <- demographic_data_big %>%
   slice(3:8096)
 head(demographic_data_big)
 colnames(demographic_data_big) <- names
-demographic_data_big <- demographic_data_big %>% 
-  mutate(state = substr(geo2010, start = 1, stop = 2)) %>% 
+demographic_data_big <- demographic_data_big %>%
+  mutate(state = substr(geo2010, start = 1, stop = 2)) %>%
   mutate(tract_number = substr(geo2010, start = 10, stop = 1000))
 head(demographic_data_big)
 
@@ -50,9 +55,8 @@ roads<-st_read("dc_roads")
 #tigris package - contains roads for DC
 options(tigris_class="sf")
 #primary_secondary_roads includes interstates and other highways in DC
-dc <- tigris::primary_secondary_roads(state="DC")
-dc
-plot(dc)
+dc_roads <- primary_secondary_roads(state="DC") %>%
+	st_transform(crs = 102285)
 ```
 
 Data is taken from [here](https://movement.uber.com/?lang=en-US) from the "Travel Times" dataset for Boston. We want to look at how different transit policies impact the travel times within a city.
@@ -66,36 +70,18 @@ This research will first look at how travel times across Washington D.C. general
 * Tie in how different people may be affected (?)
 * Start introducing the 2016 Election
 
-According to the New York Times, crowd scientists estimated 470,000 people were at the women’s march in Washington on January 21st, 2017. They say that the crowd at the women’s march was about three times the size of the crowd at the Trump inauguration, making the crowd roughly 160,000 people at the Trump inauguration. 
+According to the New York Times, crowd scientists estimated 470,000 people were at the women’s march in Washington on January 21st, 2017. They say that the crowd at the women’s march was about three times the size of the crowd at the Trump inauguration, making the crowd roughly 160,000 people at the Trump inauguration.
 https://www.nytimes.com/interactive/2017/01/22/us/politics/womens-march-trump-crowd-estimates.html
 The 2010 data set of demographic information by census tracts comes from Urban Institute: https://greaterdc.urban.org/data-explorer?geography=tr10&indicator=PctBlackNonHispBridge&topic=population&year=2012-16
 
 ```{r join_sf}
-DC_census <- st_read("data/washington_DC_censustracts.json") %>%
-	select("id" = MOVEMENT_ID, geometry) %>%
-	mutate(id = factor(id, levels = levels(travel_times$dest_id)))
-
-DC_census
-
-travel_time_sf <- left_join(x = travel_times, y = DC_census, by = c("dest_id" = "id")) %>%
+travel_time_sf <- left_join(x = travel_times_census_join, y = dc_acs_tracts, by = "GEOID") %>%
 	st_as_sf() %>%
-	st_transform(crs = 102285) 
-
-st_centroid(x = travel_time_sf)
+	st_transform(crs = 102285)
 ```
 
-
-
-```{r map}
-travel_time_sf %>%
-	ggplot() +
-	geom_sf(mapping = aes(fill = mean_travel_time)) +
-	theme_map +
-	scale_fill_viridis_c(direction = -1)
-```
-
-```{r}
-travel_time_sf %>% filter(year == 2017, month == 1, week == 3)%>%
+```{r map_travel_timne}
+travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	ggplot() +
 	geom_sf(mapping = aes(fill = mean_travel_time)) +
 	theme_map +
@@ -104,12 +90,17 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 3)%>%
 travel_time_sf %>% filter(year == 2017, month == 1, week == 4)%>%
 	ggplot() +
 	geom_sf(mapping = aes(fill = mean_travel_time)) +
+	geom_sf(data = dc_roads) +
 	theme_map +
 	scale_fill_viridis_c(direction = -1)
 ```
 
 
 
-
-
-
+```{r map_acs}
+travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = med_incomeE)) +
+	theme_map +
+	scale_fill_viridis_c()
+```
