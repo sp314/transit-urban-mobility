@@ -11,6 +11,7 @@ load("data/dc_tracts.RData")
 # Look at and choose what acs variables we want to include
 # v17 <- load_variables(2017, "acs5", cache = TRUE)
 # View(v17)
+
 acs_vars <- c(med_income = "B19013_001", 
 							med_age = "B01002_001", 
 							white = "B02001_002", 
