@@ -24,11 +24,15 @@ travel_times <- travel_times %>%
 				 dest_id = factor(dest_id))
 
 head(travel_times)
+
+#primary_secondary_roads includes interstates and other highways in DC
+dc_roads <- primary_secondary_roads(state="DC") %>%
+	st_transform(crs = 102285)
 ```
 
 
 ```{r}
-demographic_data_big <- read.csv("DC_demographic_data.csv", header = FALSE)
+demographic_data_big <- read.csv("data/DC_demographic_data.csv", header = FALSE)
 names <- unlist(demographic_data_big[2,])
 demographic_data_big <- demographic_data_big %>%
   slice(3:8096)
@@ -36,26 +40,27 @@ head(demographic_data_big)
 colnames(demographic_data_big) <- names
 demographic_data_big <- demographic_data_big %>%
   mutate(state = substr(geo2010, start = 1, stop = 2)) %>%
-  mutate(tract_number = substr(geo2010, start = 10, stop = 1000))
+  mutate(tract_number = substr(geo2010, start = 10, stop = 1000)) %>% 
+  filter(timeframe == "2012-16")
 head(demographic_data_big)
 
 ```
 
+```{r}
+demographic_data_big %>% 
+  filter(substr(tract_number, start = 1, stop = 2) == "2.")
+```
 
+
+
+Tidycensus package!!
 
 ```{r}
-#Attempting to add roads in this code chunk
-
-library(spdep)
-library(sf)
-roads<-st_read("dc_roads")
-#row.names(roads) <- as.character(roads$FIPSNO)
-#plot(st_geometry(roads), axes=TRUE)
 
 #tigris package - contains roads for DC
 options(tigris_class="sf")
 #primary_secondary_roads includes interstates and other highways in DC
-dc_roads <- primary_secondary_roads(state="DC") %>%
+dc_roads <- primary_secondary_roads(state= c("DC", "VA")) %>%
 	st_transform(crs = 102285)
 ```
 
@@ -96,11 +101,33 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 4)%>%
 ```
 
 
-
 ```{r map_acs}
 travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	ggplot() +
 	geom_sf(mapping = aes(fill = med_incomeE)) +
+	theme_map +
+	scale_fill_viridis_c()
+```
+
+```{r}
+travel_time_sf %>% 
+  mutate(state = substr(geo2010, start = 1, stop = 2)) %>%
+  mutate(tract_number = substr(geo2010, start = 10, stop = 1000)) %>%
+```
+
+```{r map_acs}
+travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = blackE)) +
+	theme_map +
+	scale_fill_viridis_c()
+```
+
+
+```{r map_acs}
+travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = car_transitE)) +
 	theme_map +
 	scale_fill_viridis_c()
 ```
