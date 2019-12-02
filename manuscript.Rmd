@@ -40,8 +40,16 @@ The 2010 data set of demographic information by census tracts comes from Urban I
 ```{r join_sf}
 travel_time_sf <- left_join(x = travel_times_census_join, y = dc_acs_tracts, by = "GEOID") %>%
 	st_as_sf() %>%
-	st_transform(crs = 102285)
+	st_transform(crs = 102285) 
+
+centroids <- cbind(st_coordinates(st_centroid(travel_time_sf)))
 ```
+
+```{r}
+plot(st_geometry(dc_acs_tracts), border="grey")
+plot(st_centroid(st_geometry(dc_acs_tracts), of_largest_polygon), add=TRUE, col="blue")
+```
+
 
 ```{r map_travel_timne}
 travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
@@ -50,12 +58,13 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	theme_map +
 	scale_fill_viridis_c(direction = -1)
 
+
 travel_time_sf %>% filter(year == 2017, month == 1, week == 4)%>%
 	ggplot() +
 	geom_sf(mapping = aes(fill = mean_travel_time)) +
 	geom_sf(data = dc_roads) +
 	theme_map +
-	scale_fill_viridis_c(direction = -1)
+	scale_fill_viridis_c(direction = -1) 
 ```
 
 
