@@ -48,6 +48,19 @@ plot(dc_acs_tracts$centroids, add=TRUE, col="blue", cex = 0.3)
 travel_time_sf <- left_join(x = travel_times_census_join, y = dc_acs_tracts, by = "GEOID") %>%
 	st_as_sf() %>%
 	st_transform(crs = 102285)
+
+# Compute distance from Washington Monument
+mnm <- tribble(
+  ~latitude, ~longitude,
+  38.8895, -77.0353
+)
+
+mnm_sf <- mnm %>%
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>%
+  st_transform(crs = 102285)
+
+travel_time_sf <- travel_time_sf %>%
+  mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE))
 ```
 
 
