@@ -37,36 +37,38 @@ According to the New York Times, crowd scientists estimated 470,000 people were 
 https://www.nytimes.com/interactive/2017/01/22/us/politics/womens-march-trump-crowd-estimates.html
 The 2010 data set of demographic information by census tracts comes from Urban Institute: https://greaterdc.urban.org/data-explorer?geography=tr10&indicator=PctBlackNonHispBridge&topic=population&year=2012-16
 
+```{r centroids}
+dc_acs_tracts$centroids <- st_centroid(st_geometry(dc_acs_tracts), of_largest_polygon)
+
+plot(st_geometry(dc_acs_tracts), border="grey")
+plot(dc_acs_tracts$centroids, add=TRUE, col="blue", cex = 0.3)
+```
+
 ```{r join_sf}
 travel_time_sf <- left_join(x = travel_times_census_join, y = dc_acs_tracts, by = "GEOID") %>%
 	st_as_sf() %>%
-	st_transform(crs = 102285) 
-
-centroids <- cbind(st_coordinates(st_centroid(travel_time_sf)))
-```
-
-```{r}
-plot(st_geometry(dc_acs_tracts), border="grey")
-plot(st_centroid(st_geometry(dc_acs_tracts), of_largest_polygon), add=TRUE, col="blue")
+	st_transform(crs = 102285)
 ```
 
 
-```{r map_travel_timne}
+```{r map_travel_time}
+map_lims <- st_bbox(dc_acs_tracts)
+
 travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	ggplot() +
-	geom_sf(mapping = aes(fill = mean_travel_time)) +
-	theme_map +
+	geom_sf(mapping = aes(fill = mean_travel_time), lwd=0.2) +
+	geom_sf(data = travel_time_sf$centroids, cex = 0.5) +
 	scale_fill_viridis_c(direction = -1)
 
-
-travel_time_sf %>% filter(year == 2017, month == 1, week == 4)%>%
+travel_time_sf %>% filter(year == 2017, month == 1, week == 4) %>%
 	ggplot() +
-	geom_sf(mapping = aes(fill = mean_travel_time)) +
-	geom_sf(data = dc_roads) +
+	geom_sf(mapping = aes(fill = mean_travel_time), lwd=0.2) +
+	geom_sf(data = dc_roads, color = "white", lwd=0.2) +
+	geom_sf(data = metro_line, color = "black", lwd=0.2) +
 	theme_map +
-	scale_fill_viridis_c(direction = -1) 
+  coord_sf(xlim = c(map_lims["xmin"], map_lims["xmax"]), ylim = c(map_lims["ymin"], map_lims["ymax"])) +
+	scale_fill_viridis_c(direction = -1)
 ```
-
 
 ```{r map_acs}
 travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
@@ -74,24 +76,13 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	geom_sf(mapping = aes(fill = med_incomeE)) +
 	theme_map +
 	scale_fill_viridis_c()
-```
 
-```{r}
-travel_time_sf %>% 
-  mutate(state = substr(geo2010, start = 1, stop = 2)) %>%
-  mutate(tract_number = substr(geo2010, start = 10, stop = 1000)) %>%
-```
-
-```{r map_acs}
 travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	ggplot() +
 	geom_sf(mapping = aes(fill = blackE)) +
 	theme_map +
 	scale_fill_viridis_c()
-```
 
-
-```{r map_acs}
 travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	ggplot() +
 	geom_sf(mapping = aes(fill = car_transitE)) +
