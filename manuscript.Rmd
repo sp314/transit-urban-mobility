@@ -12,6 +12,8 @@ library(sf)
 library(rgdal)
 library(tigris)
 library(spdep)
+library(spatialreg)
+library(ape)
 
 #tigris package - contains roads for DC
 options(tigris_class="sf")
@@ -63,7 +65,7 @@ mnm_sf <- mnm %>%
   st_transform(crs = 102285)
 
 travel_time_sf <- travel_time_sf %>%
-  mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE))
+  mutate(distance = as.numeric(st_distance(centroids, mnm_sf$geometry, by_element = TRUE)))
 ```
 
 ```{r map_travel_time}
@@ -104,3 +106,32 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	theme_map +
 	scale_fill_viridis_c()
 ```
+
+## Modeling
+
+```{r}
+week_1 <- travel_time_sf %>% filter(year == 2016, month == 9, week == 1)
+```
+
+```{r}
+st_queen <- function(a, b = a) st_relate(a, b, pattern = "F***T****")
+as.nb.sgbp <- function(x, ...) {
+  attrs <- attributes(x)
+  x <- lapply(x, function(i) { if(length(i) == 0L) 0L else i } )
+  attributes(x) <- attrs
+  class(x) <- "nb"
+  x
+}
+
+Queen <- as.nb.sgbp(st_queen(week_1))
+W <- nb2mat(Queen, style='B', zero.policy = TRUE)
+
+plot(week_1["mean_travel_time"])
+plot(Queen, week_1$centroids, col="blue", cex = 0.5, lwd = 0.5)
+```
+
+```{r CSR_test}
+Moran.I(week_1$mean_travel_time, W, na.rm=TRUE)
+```
+
+
