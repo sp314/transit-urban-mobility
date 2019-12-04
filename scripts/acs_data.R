@@ -9,8 +9,14 @@ census_api_key("c1158c3b735c3708ba05dd80bf17f753fb52a247", install = TRUE)
 load("data/dc_tracts.RData")
 
 # Look at and choose what acs variables we want to include
+<<<<<<< HEAD
+# v17 <- load_variables(2017, "acs5", cache = TRUE)
+# View(v17)
+
+=======
 v17 <- load_variables(2017, "acs5", cache = TRUE)
 View(v17)
+>>>>>>> 90d0dfccc33e9aeebbe836cd0e414c2640f5bf30
 acs_vars <- c(med_income = "B19013_001", 
 							med_age = "B01002_001", 
 							white = "B02001_002", 
