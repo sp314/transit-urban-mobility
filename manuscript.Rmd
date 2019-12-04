@@ -3,6 +3,7 @@ title: "Impact of the 2016 Presidential Election on Urban Mobility: Who is Affec
 output:
   html_document:
     df_print: paged
+    theme: cerulean
 ---
 
 ```{r setup, include=FALSE}
