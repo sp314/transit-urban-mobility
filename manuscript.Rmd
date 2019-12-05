@@ -67,7 +67,11 @@ mnm_sf <- mnm %>%
   st_transform(crs = 102285)
 
 travel_time_sf <- travel_time_sf %>%
-  mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE))
+  mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE)) %>% 
+  mutate(march_inaug = 0)
+
+travel_time_sf[11122:11676, "march_inaug"] = 1
+#entries 11122 to 11676
 ```
 
 
@@ -111,3 +115,39 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	theme_map +
 	scale_fill_viridis_c()
 ```
+
+```{r}
+st_queen <- function(a, b = a) st_relate(a, b, pattern = "F***T****")
+
+
+as.nb.sgbp <- function(x, ...) {
+  attrs <- attributes(x)
+  x <- lapply(x, function(i) { if(length(i) == 0L) 0L else i } )
+  attributes(x) <- attrs
+  class(x) <- "nb"
+  x
+}
+
+Queen <- as.nb.sgbp(st_queen(travel_time_sf %>% filter(year == 2017, month==1, week==3)))
+```
+
+
+
+```{r warning=FALSE}
+listW = nb2listw(Queen)
+dc_sar = spautolm(formula = mean_travel_time ~ as.numeric(distance), data = travel_time_sf %>% filter(year == 2017, month==1, week==3), listw = listW, family = "SAR")
+
+summary(nc_sar)
+```
+
+```{r}
+# dc$sar_resid <- resid(dc_sar)
+# 
+# travel_time_sf %>%
+#   ggplot()+
+#   geom_sf(aes(fill = sar_resid))
+```
+
+
+
+
