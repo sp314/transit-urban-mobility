@@ -123,7 +123,43 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 ## Modeling
 
 ```{r}
-week_1 <- travel_time_sf %>% filter(year == 2016, month == 9, week == 1)
+travel_time_sf$NumRoads <- sapply(st_intersects(travel_time_sf,dc_roads),length)
+travel_time_sf$NumMetro <- sapply(st_intersects(travel_time_sf,metro_line),length)
+
+#Averaged travel times over weeks 1 and 2 in January
+weeks12 <- travel_time_sf %>% 
+  filter(year %in% 2017) %>% 
+  filter(month %in% 1) %>% 
+  filter(week %in% 1:2) %>%
+  select(GEOID,mean_travel_time) %>%
+  as.data.frame() %>%
+  group_by(GEOID) %>%
+  summarize(MeanTimeNorm = mean(mean_travel_time)) 
+
+weeks34 <- travel_time_sf %>% 
+  filter(year %in% 2017) %>% 
+  filter(month %in% 1) %>% 
+  filter(week %in% 3:4) %>%
+  select(GEOID,mean_travel_time) %>%
+  as.data.frame() %>%
+  group_by(GEOID) %>%
+  summarize(MeanTimeIng = mean(mean_travel_time)) 
+  
+mod1data <- travel_time_sf %>%
+  dplyr::select(GEOID, starts_with('med_'),starts_with('white'),starts_with('asian'),starts_with('black'),starts_with('car_trans'),starts_with('public_trans'),NumRoads,NumMetro) %>%
+  left_join(weeks12)
+
+mod2data <- travel_time_sf %>%
+  dplyr::select(GEOID, starts_with('med_'),starts_with('white'),starts_with('asian'),starts_with('black'),starts_with('car_trans'),starts_with('public_trans'),NumRoads,NumMetro) %>%
+  left_join(weeks34)
+
+weeksdiff = left_join(weeks12,weeks34) %>%
+  mutate(diffMeanTime = MeanTimeIng-MeanTimeNorm)
+ 
+
+mod3data <- travel_time_sf %>%
+  dplyr::select(GEOID, starts_with('med_'),starts_with('white'),starts_with('asian'),starts_with('black'),starts_with('car_trans'),starts_with('public_trans'),NumRoads,NumMetro) %>%
+  left_join(weeksdiff)
 ```
 
 ```{r}
