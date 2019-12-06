@@ -179,3 +179,27 @@ plot(Queen, weekw34$centroids, col="blue", cex = 0.5, lwd = 0.5)
 ```{r CSR_test}
 Moran.I(week_1$mean_travel_time, W, na.rm=TRUE)
 ```
+
+```{r travel_time_variance}
+travel_time_sf_nontreat <- travel_time_sf %>%
+	filter(march_inaug == 0) %>%
+	group_by(GEOID) %>%
+	summarise(mtt_mean = mean(mean_travel_time),
+						mtt_var = var(mean_travel_time),
+						mtt_sd = sd(mean_travel_time))
+```
+
+```{r}
+travel_time_sf_nontreat %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = mtt_mean)) +
+	theme_map +
+	scale_fill_viridis_c()
+
+travel_time_sf_nontreat %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = mtt_sd)) +
+	theme_map +
+	scale_fill_viridis_c()
+```
+
