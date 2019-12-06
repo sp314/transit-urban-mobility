@@ -73,9 +73,9 @@ mnm_sf <- mnm %>%
 
 travel_time_sf <- travel_time_sf %>%
   mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE)) %>%
-  mutate(march_inaug = 0)
+  mutate(ifelse((year == 2017 && month == 1 && week %in% c(3, 4)), 1, 0))
 
-travel_time_sf[11122:11676, "march_inaug"] = 1
+# travel_time_sf[11122:11676, "march_inaug"] = 1
 #entries 11122 to 11676
 ```
 
@@ -172,11 +172,11 @@ as.nb.sgbp <- function(x, ...) {
   x
 }
 
-Queen <- as.nb.sgbp(st_queen(week_1))
+Queen <- as.nb.sgbp(st_queen(weeks34))
 W <- nb2mat(Queen, style='B', zero.policy = TRUE)
 
-plot(week_1["mean_travel_time"])
-plot(Queen, week_1$centroids, col="blue", cex = 0.5, lwd = 0.5)
+plot(weeks34["mean_travel_time"])
+plot(Queen, weekw34$centroids, col="blue", cex = 0.5, lwd = 0.5)
 ```
 
 ```{r CSR_test}
