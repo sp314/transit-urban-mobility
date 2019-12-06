@@ -72,11 +72,8 @@ mnm_sf <- mnm %>%
   st_transform(crs = 102285)
 
 travel_time_sf <- travel_time_sf %>%
-  mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE)) %>%
-  mutate(ifelse((year == 2017 && month == 1 && week %in% c(3, 4)), 1, 0))
-
-# travel_time_sf[11122:11676, "march_inaug"] = 1
-#entries 11122 to 11676
+  mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE),
+  			 march_inaug = ifelse((year == 2017 & month == 1 & week %in% c(3, 4)), 1, 0))
 ```
 
 ```{r map_travel_time}
