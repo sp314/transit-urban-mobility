@@ -186,7 +186,9 @@ travel_time_sf_nontreat <- travel_time_sf %>%
 	group_by(GEOID) %>%
 	summarise(mtt_mean = mean(mean_travel_time),
 						mtt_var = var(mean_travel_time),
-						mtt_sd = sd(mean_travel_time))
+						mtt_sd = sd(mean_travel_time),
+						NumRoads = log(mean(NumRoads) + 0.0001),
+						NumMetro = log(mean(NumMetro + 0.0001)))
 ```
 
 ```{r}
@@ -199,6 +201,18 @@ travel_time_sf_nontreat %>%
 travel_time_sf_nontreat %>%
 	ggplot() +
 	geom_sf(mapping = aes(fill = mtt_sd)) +
+	theme_map +
+	scale_fill_viridis_c()
+
+travel_time_sf_nontreat %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = NumRoads)) +
+	theme_map +
+	scale_fill_viridis_c()
+
+travel_time_sf_nontreat %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = NumMetro)) +
 	theme_map +
 	scale_fill_viridis_c()
 ```
