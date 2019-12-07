@@ -50,7 +50,7 @@ In order to examine the shock from these massive events, we used areal Uber data
 
 According to the New York Times, crowd scientists estimated 470,000 people were at the women’s march in Washington on January 21st, 2017. They say that the crowd at the women’s march was about three times the size of the crowd at the Trump inauguration, making the crowd roughly 160,000 people at the Trump inauguration.
 https://www.nytimes.com/interactive/2017/01/22/us/politics/womens-march-trump-crowd-estimates.html
-The 2010 data set of demographic information by census tracts comes from Urban Institute: 
+The 2010 data set of demographic information by census tracts comes from Urban Institute:
 
 ```{r centroids}
 dc_acs_tracts$centroids <- st_centroid(st_geometry(dc_acs_tracts), of_largest_polygon)
@@ -84,11 +84,8 @@ mnm_sf <- mnm %>%
   st_transform(crs = 102285)
 
 travel_time_sf <- travel_time_sf %>%
-  mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE)) %>%
-  mutate(march_inaug = 0)
-
-travel_time_sf[11122:11676, "march_inaug"] = 1
-#entries 11122 to 11676
+  mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE),
+  			 march_inaug = ifelse((year == 2017 & month == 1 & week %in% c(3, 4)), 1, 0))
 ```
 
 ```{r map_travel_time}
@@ -139,44 +136,44 @@ travel_time_sf$NumRoads <- sapply(st_intersects(travel_time_sf,dc_roads),length)
 travel_time_sf$NumMetro <- sapply(st_intersects(travel_time_sf,metro_line),length)
 
 #Averaged travel times over weeks 1 and 2 in January
-weeks12 <- travel_time_sf %>% 
-  filter(year %in% 2017) %>% 
-  filter(month %in% 1) %>% 
+weeks12 <- travel_time_sf %>%
+  filter(year %in% 2017) %>%
+  filter(month %in% 1) %>%
   filter(week %in% 1:2) %>%
   select(GEOID,mean_travel_time) %>%
   as.data.frame() %>%
   group_by(GEOID) %>%
-  summarize(MeanTimeNorm = mean(mean_travel_time)) 
+  summarize(MeanTimeNorm = mean(mean_travel_time))
 
 #Averaged travel times over weeks 3 and 4 in January
-weeks34 <- travel_time_sf %>% 
-  filter(year %in% 2017) %>% 
-  filter(month %in% 1) %>% 
+weeks34 <- travel_time_sf %>%
+  filter(year %in% 2017) %>%
+  filter(month %in% 1) %>%
   filter(week %in% 3:4) %>%
   select(GEOID,mean_travel_time) %>%
   as.data.frame() %>%
   group_by(GEOID) %>%
-  summarize(MeanTimeIng = mean(mean_travel_time)) 
-  
+  summarize(MeanTimeIng = mean(mean_travel_time))
+
 mod1data <- travel_time_sf %>%
-  filter(year %in% 2017) %>% 
-  filter(month %in% 1) %>% 
+  filter(year %in% 2017) %>%
+  filter(month %in% 1) %>%
   filter(week %in% c(1:2)) %>%
   dplyr::select(GEOID, starts_with('med_'),starts_with('white'),starts_with('asian'),starts_with('black'),starts_with('car_trans'),starts_with('public_trans'),NumRoads,NumMetro, distance) %>%
-  distinct(GEOID) %>% 
+  distinct(GEOID) %>%
   left_join(weeks12)
 
 mod2data <- travel_time_sf %>%
-  filter(year %in% 2017) %>% 
-  filter(month %in% 1) %>% 
+  filter(year %in% 2017) %>%
+  filter(month %in% 1) %>%
   filter(week %in% c(3:4)) %>%
   dplyr::select(GEOID, starts_with('med_'),starts_with('white'),starts_with('asian'),starts_with('black'),starts_with('car_trans'),starts_with('public_trans'),NumRoads,NumMetro, distance) %>%
-  distinct(GEOID) %>% 
+  distinct(GEOID) %>%
   left_join(weeks34)
 
 weeksdiff = left_join(weeks12,weeks34) %>%
   mutate(diffMeanTime = MeanTimeIng-MeanTimeNorm)
- 
+
 
 mod3data <- travel_time_sf %>%
   filter(year %in% 2017) %>%
@@ -202,7 +199,9 @@ as.nb.sgbp <- function(x, ...) {
   class(x) <- "nb"
   x
 }
+```
 
+```{r}
 Queen <- as.nb.sgbp(st_queen(mod1data))
 W <- nb2mat(Queen, style='B', zero.policy = TRUE)
 
@@ -221,6 +220,12 @@ listW = nb2listw(Queen)
 dc_sar2 = spautolm(formula = MeanTimeNorm ~ NumRoads+NumMetro+distance, data = mod1data, listw = listW, family = "SAR")
 
 summary(dc_sar2)
+
+Queen <- as.nb.sgbp(st_queen(weeks34))
+W <- nb2mat(Queen, style='B', zero.policy = TRUE)
+
+plot(weeks34["mean_travel_time"])
+plot(Queen, weekw34$centroids, col="blue", cex = 0.5, lwd = 0.5)
 ```
 
 
@@ -251,3 +256,43 @@ summary(dc_sar_diff)
 
 
 
+```{r}
+Moran.I(week_1$mean_travel_time, W, na.rm=TRUE)
+```
+
+```{r travel_time_variance}
+travel_time_sf_nontreat <- travel_time_sf %>%
+	filter(march_inaug == 0) %>%
+	group_by(GEOID) %>%
+	summarise(mtt_mean = mean(mean_travel_time),
+						mtt_var = var(mean_travel_time),
+						mtt_sd = sd(mean_travel_time),
+						NumRoads = log(mean(NumRoads) + 0.0001),
+						NumMetro = log(mean(NumMetro + 0.0001)))
+```
+
+```{r}
+travel_time_sf_nontreat %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = mtt_mean)) +
+	theme_map +
+	scale_fill_viridis_c()
+
+travel_time_sf_nontreat %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = mtt_sd)) +
+	theme_map +
+	scale_fill_viridis_c()
+
+travel_time_sf_nontreat %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = NumRoads)) +
+	theme_map +
+	scale_fill_viridis_c()
+
+travel_time_sf_nontreat %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = NumMetro)) +
+	theme_map +
+	scale_fill_viridis_c()
+```
