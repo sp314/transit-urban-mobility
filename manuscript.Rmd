@@ -72,7 +72,7 @@ travel_time_sf <- left_join(x = travel_times_census_join, y = dc_acs_tracts, by 
 	st_transform(crs = 102285)
 ```
 
-```{r dist_to_center}
+```{r dist_to_center march_inaug}
 # Compute distance from Washington Monument
 mnm <- tribble(
   ~latitude, ~longitude,
@@ -135,7 +135,7 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 travel_time_sf$NumRoads <- sapply(st_intersects(travel_time_sf,dc_roads),length)
 travel_time_sf$NumMetro <- sapply(st_intersects(travel_time_sf,metro_line),length)
 
-#Averaged travel times over weeks 1 and 2 in January
+# Average travel times over weeks 1 and 2 in January (before inauguration)
 weeks12 <- travel_time_sf %>%
   filter(year %in% 2017) %>%
   filter(month %in% 1) %>%
@@ -145,7 +145,15 @@ weeks12 <- travel_time_sf %>%
   group_by(GEOID) %>%
   summarize(MeanTimeNorm = mean(mean_travel_time))
 
-#Averaged travel times over weeks 3 and 4 in January
+weeks12_data <- travel_time_sf %>%
+  filter(year %in% 2017) %>%
+  filter(month %in% 1) %>%
+  filter(week %in% c(1:2)) %>%
+  distinct(GEOID, .keep_all = TRUE) %>%
+  dplyr::select(GEOID, starts_with('med_'), starts_with('white'), starts_with('asian'), starts_with('black'), starts_with('car_trans'), starts_with('public_trans'), NumRoads, NumMetro, distance) %>%
+  left_join(weeks12, by = 'GEOID')
+
+# Average travel times over weeks 3 and 4 in January (during & after inauguration)
 weeks34 <- travel_time_sf %>%
   filter(year %in% 2017) %>%
   filter(month %in% 1) %>%
@@ -155,40 +163,27 @@ weeks34 <- travel_time_sf %>%
   group_by(GEOID) %>%
   summarize(MeanTimeIng = mean(mean_travel_time))
 
-mod1data <- travel_time_sf %>%
-  filter(year %in% 2017) %>%
-  filter(month %in% 1) %>%
-  filter(week %in% c(1:2)) %>%
-  dplyr::select(GEOID, starts_with('med_'),starts_with('white'),starts_with('asian'),starts_with('black'),starts_with('car_trans'),starts_with('public_trans'),NumRoads,NumMetro, distance) %>%
-  distinct(GEOID) %>%
-  left_join(weeks12)
-
-mod2data <- travel_time_sf %>%
+weeks34_data <- travel_time_sf %>%
   filter(year %in% 2017) %>%
   filter(month %in% 1) %>%
   filter(week %in% c(3:4)) %>%
-  dplyr::select(GEOID, starts_with('med_'),starts_with('white'),starts_with('asian'),starts_with('black'),starts_with('car_trans'),starts_with('public_trans'),NumRoads,NumMetro, distance) %>%
-  distinct(GEOID) %>%
-  left_join(weeks34)
+  distinct(GEOID, .keep_all = TRUE) %>%
+  dplyr::select(GEOID, starts_with('med_'), starts_with('white'), starts_with('asian'), starts_with('black'), starts_with('car_trans'), starts_with('public_trans'), NumRoads, NumMetro, distance) %>%
+  left_join(weeks34, by = 'GEOID')
 
-weeksdiff = left_join(weeks12,weeks34) %>%
-  mutate(diffMeanTime = MeanTimeIng-MeanTimeNorm)
+# Take difference in average travel times before and after inauguration
+weeksdiff <- left_join(weeks12, weeks34) %>%
+  mutate(diffMeanTime = MeanTimeIng - MeanTimeNorm)
 
-
-mod3data <- travel_time_sf %>%
+weeksdiff_data <- travel_time_sf %>%
   filter(year %in% 2017) %>%
   filter(month %in% 1) %>%
   filter(week %in% 1) %>%
   dplyr::select(GEOID, med_incomeE, med_incomeM, asianE, asianM, blackE, blackM, public_transitE, public_transitM, car_transitE, car_transitM, NumRoads, NumMetro, distance) %>%
-  left_join(weeksdiff)
+  left_join(weeksdiff, by = 'GEOID')
 ```
 
-
-```{r}
-head(mod1data)
-```
-
-Normal mean time model
+Normal Mean Time Model
 
 ```{r}
 st_queen <- function(a, b = a) st_relate(a, b, pattern = "F***T****")
@@ -202,63 +197,41 @@ as.nb.sgbp <- function(x, ...) {
 ```
 
 ```{r}
-Queen <- as.nb.sgbp(st_queen(mod1data))
-W <- nb2mat(Queen, style='B', zero.policy = TRUE)
+queen12 <- as.nb.sgbp(st_queen(weeks12_data))
+W <- nb2mat(queen12, style='B', zero.policy = TRUE)
+listW <- nb2listw(queen12)
 
+dc_sar_12 <- spautolm(formula = MeanTimeNorm ~ med_incomeE + med_incomeM + asianE + asianM + blackE + blackM + public_transitE + public_transitM + car_transitE + car_transitM + NumRoads + NumMetro + distance, data = weeks12_data, listw = listW, family = "SAR")
 
+summary(dc_sar_12)
+# plot(weeks12["mean_travel_time"])
+# plot(queen12, weeks12$centroids, col="blue", cex = 0.5, lwd = 0.5)
 ```
 
 ```{r CSR_test}
-listW = nb2listw(Queen)
-dc_sar = spautolm(formula = MeanTimeNorm ~ med_incomeE + med_incomeM + asianE + asianM + blackE + blackM + public_transitE + public_transitM + car_transitE + car_transitM + NumRoads + NumMetro+distance, data = mod1data, listw = listW, family = "SAR")
+queen34 <- as.nb.sgbp(st_queen(weeks34_data))
+W <- nb2mat(queen34, style='B', zero.policy = TRUE)
+listW <- nb2listw(queen34)
 
-summary(dc_sar)
-```
+dc_sar_34 <- spautolm(formula = MeanTimeIng ~ med_incomeE + med_incomeM + asianE + asianM + blackE + blackM + public_transitE + public_transitM + car_transitE + car_transitM + NumRoads + NumMetro + distance, data = weeks34_data, listw = listW, family = "SAR")
 
-```{r CSR_test}
-listW = nb2listw(Queen)
-dc_sar2 = spautolm(formula = MeanTimeNorm ~ NumRoads+NumMetro+distance, data = mod1data, listw = listW, family = "SAR")
-
-summary(dc_sar2)
-
-Queen <- as.nb.sgbp(st_queen(weeks34))
-W <- nb2mat(Queen, style='B', zero.policy = TRUE)
-
-plot(weeks34["mean_travel_time"])
-plot(Queen, weekw34$centroids, col="blue", cex = 0.5, lwd = 0.5)
-```
-
-
-```{r CSR_test}
-listW = nb2listw(Queen)
-dc_sar2 = spautolm(formula = MeanTimeNorm ~ med_incomeE + asianE + blackE + public_transitE + NumRoads + NumMetro+distance, data = mod1data, listw = listW, family = "SAR")
-
-summary(dc_sar2)
+summary(dc_sar_34)
+# plot(weeks34["mean_travel_time"])
+# plot(queen34, weeks34$centroids, col="blue", cex = 0.5, lwd = 0.5)
 ```
 
 Difference Model
 
 ```{r}
-QueenDiff <- as.nb.sgbp(st_queen(mod3data))
-W <- nb2mat(Queen, style='B', zero.policy = TRUE)
+queen_diff <- as.nb.sgbp(st_queen(weeksdiff_data))
+W <- nb2mat(queen_diff, style='B', zero.policy = TRUE)
+listW <- nb2listw(queen_diff)
 
-```
-
-
-
-
-```{r}
-listW = nb2listw(QueenDiff)
-dc_sar_diff = spautolm(formula = MeanTimeNorm ~ med_incomeE + asianE + blackE + public_transitE + NumRoads + NumMetro+distance, data = mod3data, listw = listW, family = "SAR")
+dc_sar_diff <- spautolm(formula = diffMeanTime ~ med_incomeE + med_incomeM + asianE + asianM + blackE + blackM + public_transitE + public_transitM + car_transitE + car_transitM + NumRoads + NumMetro + distance, data = weeksdiff_data, listw = listW, family = "SAR")
 
 summary(dc_sar_diff)
 ```
 
-
-
-```{r}
-Moran.I(week_1$mean_travel_time, W, na.rm=TRUE)
-```
 
 ```{r travel_time_variance}
 travel_time_sf_nontreat <- travel_time_sf %>%
