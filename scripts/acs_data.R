@@ -40,9 +40,10 @@ dc_acs_tracts <- left_join(x = dc_tracts, y = dc_acs, by = "GEOID") %>%
 				 asian_pct = asianE/populationE,
 				 public_transit_pct = public_transitE/populationE,
 				 car_transit_pct = car_transitE/populationE,
-				 bachelor_pct = bachelor_degE/populationE
+				 bachelor_pct = bachelor_degE/populationE,
+				 white_pct = whiteE/populationE
 				 ) %>%
-	select(GEOID, NAME, med_income, asian_pct, black_pct, public_transit_pct, car_transit_pct, bachelor_pct)
+	select(GEOID, NAME, med_income, asian_pct, black_pct, public_transit_pct, car_transit_pct, bachelor_pct, white_pct)
 
 # # Save joined acs data by tract
 save(dc_acs_tracts, file = "data/dc_acs_tracts.RData")

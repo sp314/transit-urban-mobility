@@ -160,9 +160,9 @@ listW <- nb2listw(queen)
 ```
 
 ```{r SAR_models}
-dc_sar_nontreat <- spautolm(formula = MeanTimeNonTreat ~ med_income + asian_pct + black_pct + public_transit_pct + car_transit_pct + n_roads + n_transit + distance, data = travel_time_diff, listw = listW, family = "SAR")
+dc_sar_nontreat <- spautolm(formula = MeanTimeNonTreat ~ med_income + asian_pct + black_pct + white_pct + public_transit_pct + car_transit_pct + n_roads + n_transit + distance, data = travel_time_diff, listw = listW, family = "SAR")
 
-dc_sar_treat <- spautolm(formula = MeanTimeTreat ~ med_income + asian_pct + black_pct + public_transit_pct + car_transit_pct + n_roads + n_transit + distance, data = travel_time_diff, listw = listW, family = "SAR")
+dc_sar_treat <- spautolm(formula = MeanTimeTreat ~ med_income + asian_pct + black_pct + white_pct + public_transit_pct + car_transit_pct + n_roads + n_transit + distance, data = travel_time_diff, listw = listW, family = "SAR")
 
 summary(dc_sar_nontreat)
 summary(dc_sar_treat)
@@ -175,7 +175,7 @@ summary(dc_sar_treat)
 Difference Model
 
 ```{r}
-dc_sar_diff <- spautolm(formula = MeanTimeDiff ~ med_income + asian_pct + black_pct + public_transit_pct + car_transit_pct + n_roads + n_transit + distance, data = travel_time_diff, listw = listW, family = "SAR")
+dc_sar_diff <- spautolm(formula = MeanTimeDiff ~ med_income + asian_pct + black_pct + white_pct + public_transit_pct + car_transit_pct + n_roads + n_transit + distance , data = travel_time_diff, listw = listW, family = "SAR")
 
 summary(dc_sar_diff)
 ```
