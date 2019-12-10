@@ -10,19 +10,6 @@ header-includes:
      - \usepackage{float}
 abstract: "This project explores mobility in Washington, D.C. in normal conditions and during highly populated events that create a shock to the transportation system. Washington is significant as the nation's capital and therefore a host of major events. Washington is also a considerably segregated city. Because of the frequent events and segregation, it is important to model mobility throughout the city and the metropolitan area. Specifically, this paper models normal traffic conditions in Washington and conditions during the 2017 inauguration and subsequent Women's March by using Spatial Autoregressive Models."
 ---
-
-## Introduction
-
-Examining Washington D.C. during the 2017 women's march and presidential inauguration, this paper looks to examine the effect that large scale public events have on urban mobility. On January 20, 2017, Donald Trump was inaugurated in Washington. The following day, January 21, hundreds of thousands of people protested Trump's inauguration through the Women's March. The women's march in Washington has been called the largest protest in the United States with an estimated 470,000 people in attendance. Crowd scientists estimate that the crowd at the Trump inauguration was about around 160,000 people, a third of the size of the protest [@wallace_parlapiano_2017]. A population increase of this size over the course of just one weekend creates a huge shock to the transportation system. This can occur through the influx of people coming into the city as well as road blocks impeding traffic. This study looks at changes in the mean travel time to the center of D.C., with the center point defined as the Washington Monument. We chose this point because it was near the presidential inauguration and women's march. Before modeling this impact, however, we first modeled the impact of demographic census data on travel time during normal January conditions. We then were able to observe how demographics impact mobility and how those factors are exacerbated during major shocks to the system. We found that the number of roads, distance to the Washington Monument, and the number of black residents are consistently the most significant predictors of travel time to each polygon from the Washington Monument. Further, we found that ________ ADD FINDINGS ABOUT SIGNIFICANCE DURING SHOCK!!!
-
-It is important to examine urban mobility in two ways. First, city attributes such as road or transit access make certain areas more accessible. Unfortunately, accessibility or mobility often falls along racial or class lines. Washington is highly segregated and by using a spatial autoregressive model on travel time to the Washington Monument during normal times, we are able to see the impact of race on D.C. area mobility. We observed that the population of black residents in a census tract is one of the few significant variables in predicting travel time to the Washington Monument. Second, major increases in population during special events can shock the city's infrastructure. For this reason, we looked at Washington because it is a city that is especially significant during major national events such as the inauguration and therefore attracts huge numbers of additional visitors. We used a similar spatial autoregressive model for the week of the inauguration and Women's March and then modeled the differences between the normal weeks and the inauguration and march to observe the shock on the system. Through modeling both before and during the major events, we were able to observe both demographic significance of travel time and the impact of major population changes on the system.  
-
-In order to examine the shock from these massive events, we used areal Uber data which includes travel times between various census tract locations in the DC metropolitan area. To model travel times before and during the event periods, we isolated a location and looked only at the travel time between each census tract in the Washington metropolitan area and the Washington Monument. We chose the Washington Monument as the origin because it is in the middle of the National Mall, where many significant events, including the inauguration and Women's March, took place. Because the shape files are census tracts, we were able to include census information for each polygon through the `tidycensus` package. This data allowed us to address the impact of demographics on travel time.  
-
-## Literature Review
-
-Many scholars have studied both mobility and shocks to the system in a variety of contexts. It is important to closely study every city's transportation system which is why many studies have been conducted. Noulas et. al use a network called Foursquare which records peoples locations to track and model mobility in a number of different cities [@noulas2012tale]. Studies about mobility and accessibility have been conducted in many cities including New York City [@litman2017evaluating] where concepts such as accessibility can be quantified and modeled to demonstrate lapses in the system. Shocks to transportation systems have also been modeled by a number of scholars. Donovan and Work's 2017 study uses taxi data to model the impacts of major events such as hurricane Sandy on New York city [@donovan2017empirically]. Wang also modeled the impact of Hurricane Sandy on New York city by looking at images of people throughout the city [@wang2014quantifying]. Other major events modeled by scholars include the Olympics [@friedman2001impact] and the World Cup [@de2014transportation]. Transportation scholars have used a variety of data sources to observe the mobility of people including taxi data, satellite imagery, and cell phone data [@calabrese2010geography]. Uber data is accessible and also provides an indication of mobility since so many people travel in cars. Because of this accessibility, we decided to model the effects of the inauguration and Women's March in Washington, D.C. that happened during the third weekend of January 2017. 
-
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(sf)
@@ -74,54 +61,28 @@ travel_time_sf <- left_join(x = travel_times_census_join, y = dc_acs_tracts, by 
 	mutate(march_inaug = ifelse((year == 2017 & month == 1 & week %in% c(3, 4)), 1, 0))
 ```
 
-
-
-```{r map_travel_time}
-map_lims <- st_bbox(dc_acs_tracts)
-
-# travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
-# 	ggplot() +
-# 	geom_sf(mapping = aes(fill = mean_travel_time), lwd=0.2) +
-# 	geom_sf(data = travel_time_sf$centroids, cex = 0.5) +
-# 	scale_fill_viridis_c(direction = -1)
-
-travel_time_sf %>% filter(year == 2017, month == 1, week == 4) %>%
-	ggplot() +
-	geom_sf(mapping = aes(fill = mean_travel_time), lwd=0.2) +
-	geom_sf(data = dc_roads, color = "white", lwd=0.2) +
-	geom_sf(data = metro_line, color = "black", lwd=0.2) +
-	theme_map +
-  coord_sf(xlim = c(map_lims["xmin"], map_lims["xmax"]), ylim = c(map_lims["ymin"], map_lims["ymax"])) +
-	scale_fill_viridis_c(direction = -1)
+```{r travel_time_variance}
+travel_time_sf_nontreat <- travel_time_sf %>%
+	filter(march_inaug == 0) %>%
+	group_by(GEOID) %>%
+	summarise(mtt = mean(mean_travel_time),
+						mtt_var = var(mean_travel_time),
+						mtt_sd = sd(mean_travel_time),
+						log_roads = log(mean(n_roads) + 0.000001),
+						log_transit = log(mean(n_transit) + 0.000001))
 ```
 
-```{r map_acs}
-travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
-	ggplot() +
-	geom_sf(mapping = aes(fill = med_income)) +
-	theme_map +
-	scale_fill_viridis_c()
-
-travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
-	ggplot() +
-	geom_sf(mapping = aes(fill = black_pct)) +
-	theme_map +
-	scale_fill_viridis_c()
-```
-
-
-## Modeling
 
 ```{r travel_time_diff}
 # Average travel times over weeks 1 and 2 in January (before inauguration) and 1 and 2 in February (after inauguration)
-non_treat <- travel_times_census_join %>%
-  filter(year %in% 2017, month %in% 1:2, week %in% 1:2) %>%
+before_inaug <- travel_times_census_join %>%
+  filter(year %in% 2017, month %in% 1, week %in% 1:2) %>%
   select(GEOID, mean_travel_time) %>%
   group_by(GEOID) %>%
   summarize(MeanTimeNonTreat = mean(mean_travel_time))
 
 # Average travel times over weeks 3 and 4 in January (during & after inauguration)
-treat <- travel_time_sf %>%
+inaug <- travel_time_sf %>%
 	filter(year %in% 2017, month %in% 1, week %in% 3:4) %>%
   select(GEOID, mean_travel_time) %>%
   as.data.frame() %>%
@@ -129,14 +90,12 @@ treat <- travel_time_sf %>%
   summarize(MeanTimeTreat = mean(mean_travel_time))
 
 # Take difference in average travel times before and after inauguration
-weeks_diff <- left_join(non_treat, treat) %>%
+weeks_diff <- left_join(before_inaug, inaug) %>%
   mutate(MeanTimeDiff = MeanTimeTreat - MeanTimeNonTreat)
 
 travel_time_diff <- dc_acs_tracts %>%
 	left_join(weeks_diff, by = 'GEOID')
 ```
-
-Normal Mean Time Model
 
 ```{r neighborhood_struct}
 st_queen <- function(a, b = a) st_relate(a, b, pattern = "F***T****")
@@ -152,6 +111,72 @@ queen <- as.nb.sgbp(st_queen(travel_time_diff))
 W <- nb2mat(queen, style='B', zero.policy = TRUE)
 listW <- nb2listw(queen)
 ```
+
+## Introduction
+
+Examining Washington D.C. during the 2017 women's march and presidential inauguration, this paper looks to examine the effect that large scale public events have on urban mobility. On January 20, 2017, Donald Trump was inaugurated in Washington. The following day, January 21, hundreds of thousands of people protested Trump's inauguration through the Women's March. The women's march in Washington has been called the largest protest in the United States with an estimated 470,000 people in attendance. Crowd scientists estimate that the crowd at the Trump inauguration was about around 160,000 people, a third of the size of the protest [@wallace_parlapiano_2017]. A population increase of this size over the course of just one weekend creates a huge shock to the transportation system. This can occur through the influx of people coming into the city as well as road blocks impeding traffic. This study looks at changes in the mean travel time to the center of D.C., with the center point defined as the Washington Monument. Before modeling this impact, however, we first modeled the impact of demographic census data on travel time during normal January conditions. We then were able to observe how demographics impact mobility and how those factors are exacerbated during major shocks to the system. We found that the number of roads, distance to the Washington Monument, and the number of black residents are consistently the most significant predictors of travel time to each polygon from the Washington Monument. Further, we found that ________ ADD FINDINGS ABOUT SIGNIFICANCE DURING SHOCK!!!
+
+It is important to examine urban mobility in two ways. First, city attributes such as road or transit access make certain areas more accessible. Unfortunately, accessibility or mobility often falls along racial or class lines. Washington is highly segregated and the cause of which is likely in part be due to urban planning that partitions the city into separate demographics. 
+
+```{r map_acs}
+dc_acs_tracts %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = med_income)) +
+	theme_map +
+	scale_fill_viridis_c()
+
+dc_acs_tracts %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = black_pct)) +
+	theme_map +
+	scale_fill_viridis_c()
+```
+
+As shown in figure 1 and 2, it is clear that there are sharp both economic and racial divides as shown by census demographics. Whether the partitions assigned to each demographic group affect their ability to access the center or downtown area of D.C. is a key question to answer if transportation policy is focused on helping different demographics. By using a simultaneous autoregressive model on travel time to the Washington Monument during normal times, we are able to see the impact of race on D.C. area mobility. We observed that the population of black residents in a census tract is one of the few significant variables in predicting travel time to the Washington Monument. Second, major increases in population during special events can shock the city's infrastructure. For this reason, we looked at Washington because it is a city that is especially significant during major national events such as the inauguration and therefore attracts huge numbers of additional visitors. We used a similar simultaneous autoregressive model for the week of the inauguration and Women's March and then modeled the differences between the normal weeks and the inauguration and march to observe the shock on the system. Through modeling both before and during the major events, we were able to observe both demographic significance of travel time and the impact of major population changes on the system.  
+
+In order to examine the shock from these massive events, we used areal Uber data which includes travel times between various census tract locations in the DC metropolitan area. To model travel times before and during the event periods, we isolated a location and looked only at the travel time between each census tract in the Washington metropolitan area and the Washington Monument. We chose the Washington Monument as the origin because it is in the middle of the National Mall, where many significant events, including the inauguration and Women's March, took place. Because the spatial features being analyzed are census tracts, we were able to include census information for each polygon through the `tidycensus` package [@walker2018tidycensus]. This data allowed us to address the impact of demographics on travel time.  
+
+## Literature Review
+
+Many scholars have studied both mobility and shocks to the system in a variety of contexts. It is important to closely study every city's transportation system which is why many studies have been conducted. Noulas et. al use a network called Foursquare which records peoples locations to track and model mobility in a number of different cities [@noulas2012tale]. Studies about mobility and accessibility have been conducted in many cities including New York City [@litman2017evaluating] where concepts such as accessibility can be quantified and modeled to demonstrate lapses in the system. Shocks to transportation systems have also been modeled by a number of scholars. Donovan and Work's 2017 study uses taxi data to model the impacts of major events such as hurricane Sandy on New York city [@donovan2017empirically]. Wang also modeled the impact of Hurricane Sandy on New York city by looking at images of people throughout the city [@wang2014quantifying]. Other major events modeled by scholars include the Olympics [@friedman2001impact] and the World Cup [@de2014transportation]. Transportation scholars have used a variety of data sources to observe the mobility of people including taxi data, satellite imagery, and cell phone data [@calabrese2010geography]. Uber data is accessible and also provides an indication of mobility since so many people travel in cars. Because of this accessibility, we decided to model the effects of the inauguration and Women's March in Washington, D.C. that happened during the third weekend of January 2017. 
+
+## Methods
+
+Our goal in modeling the travel times of different census tracts to the Washington monument is twofold. First, we want to see what factors in general influence travel times; and second, we want to see if these factors determine whether a census tract is heavily affected by a signficant event such as the inauguration and Women's March. The census track features we consider during this analysis are the distance to Washington monument, median income, asian, white, and black percentage demographics, percent of people who use cars as their primary mode of transportation versus public transit, number of primary-secondary roads (see [ACS Technical Documentation, Page 3-42](https://www2.census.gov/geo/pdfs/maps-data/data/tiger/tgrshp2015/TGRSHP2015_TechDoc.pdf)), and number of transit lines. The purpose of using several features that may distinguish census tracts and specific methods is to find non-confounded estimates and accurately infer what affects travel times.
+
+We first consider whether or not our data is spatially autocorrelated. For example, neighboring census tracts likely have very similar travel times and demographics simply by virtue of being physically near each other. If this correlation was not present, we would see that the travel times between neighboring census tracts have no relation at all. Under spatially autocorrelated conditions, the standard errors of regression become inflated and thus a correlation structure based on neighboring polygons is necessary. Understandably, another equally important choice involved in this analysis is how to define neighbors.
+
+```{r map_travel_time, fig.cap="Mean travel time to Washington Monument in seconds. White lines are primary and secondary roads, black lines are Metro Transit rail lines, and the blue diamond labels the monument"}
+map_lims <- st_bbox(dc_acs_tracts)
+
+travel_time_sf_nontreat %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = mtt), lwd=0.2) +
+	geom_sf(data = dc_roads, color = "white", lwd=0.5) +
+	geom_sf(data = metro_line, color = "black", lwd=0.5) +
+	geom_sf(data = mnm_sf, fill = "blue", shape = 23, size = 5) +
+	theme_map +
+  coord_sf(xlim = c(map_lims["xmin"] + 1000, map_lims["xmax"] - 1000), ylim = c(map_lims["ymin"], map_lims["ymax"])) +
+	scale_fill_viridis_c(direction = -1)
+```
+
+As is visible in figure 1, many of the tracts neighboring each other have very similar mean travel times (MTT). The addition of transit and roadways also brings up the notion that neighboring tracts have access to similar roadways; this is especially true for the many roadways that coincide with census tract borders. We further justify the hypothesis of spatial autocorrelation through a Moran's I test. The null hypothesis of Moran's I test is that there is complete spatial randomness (CSR) which implies no spatial autocorrelation. We observe a p-value of 0 for the Moran's I statistic and thus reject the null hypothesis of CSR. In turn, we conclude the presence of spatial autocorrelation and justify the need to impose a neighborhood correlation structure in our regression models. We define two tracts to be neighbors if they simply share a portion of their border. We decide on this neighborhood structure, as opposed to within-distance and k-nearest-neighbors structures, due to the relative size of D.C's census tracts and the lack of tracts that share very minimal borders. Since tracts are relatively small, we can be confident that every bordering neighbor is physically close to any point in a tract. Also because there are not tracts that share minimal borders, we can exclude the possibility of edge cases such as where long and narrow tracts neighbor with each other at one point.
+
+```{r, results='hide'}
+Moran.I(travel_time_sf_nontreat$mtt, W, na.rm=TRUE)
+```
+
+This analysis makes use of simultaneous autoregressive models (SAR). We choose this model over other longitudinal regression because it is able to take into account a neighborhood correlation structure such as the the border-sharing relation we consider. Additionally, we choose this model over other spatial autoregressive models such as CARs because the specification is relatively simple to comprehend.
+
+
+### Travel Times in General
+
+### Travel Times as Affected by Inauguration Weekend
+
+
+Normal Mean Time Model
+
+
 
 ```{r SAR_models}
 dc_sar_nontreat <- spautolm(formula = MeanTimeNonTreat ~ med_income + asian_pct + black_pct + white_pct + public_transit_pct + car_transit_pct + n_roads + n_transit + distance, data = travel_time_diff, listw = listW, family = "SAR")
@@ -174,48 +199,10 @@ dc_sar_diff <- spautolm(formula = MeanTimeDiff ~ med_income + asian_pct + black_
 summary(dc_sar_diff)
 ```
 
-
-```{r travel_time_variance}
-travel_time_sf_nontreat <- travel_time_sf %>%
-	filter(march_inaug == 0) %>%
-	group_by(GEOID) %>%
-	summarise(mtt_mean = mean(mean_travel_time),
-						mtt_var = var(mean_travel_time),
-						mtt_sd = sd(mean_travel_time),
-						log_roads = log(mean(n_roads) + 0.000001),
-						log_transit = log(mean(n_transit) + 0.000001))
-```
-
-```{r}
-# travel_time_sf_nontreat %>%
-# 	ggplot() +
-# 	geom_sf(mapping = aes(fill = mtt_mean)) +
-# 	theme_map +
-# 	scale_fill_viridis_c()
-# 
-# travel_time_sf_nontreat %>%
-# 	ggplot() +
-# 	geom_sf(mapping = aes(fill = mtt_sd)) +
-# 	theme_map +
-# 	scale_fill_viridis_c()
-# 
-# travel_time_sf_nontreat %>%
-# 	ggplot() +
-# 	geom_sf(mapping = aes(fill = log_roads)) +
-# 	theme_map +
-# 	scale_fill_viridis_c()
-# 
-# travel_time_sf_nontreat %>%
-# 	ggplot() +
-# 	geom_sf(mapping = aes(fill = log_transit)) +
-# 	theme_map +
-# 	scale_fill_viridis_c()
-```
-
 ## Results
 
 Our first spatial autoregressive model looks at how mean travel times is affected by the estimated demographics in each census tract before the inauguration. The coefficients `med_income`, `asian_pct`, `public_transit_pct`, `car_transit_pct`, `n_roads`, `n_transit` are all negative, implying that it takes longer to travel from the Washington Monument to the polygons in which there are lower median income, lower percentage of Asian population, and lower number of public transit, car transit, roads, and metro lines. It is usually the case that the city attributes such as `public_transit_pct`, `car_transit_pct`, `n_roads`, and `n_transit` have an immediate impact on transportation and thus can directly account for the variation in travel times, whereas the link between demographic factors in a region and travel times might not be as clear. One possible explanation is that the areas where people have lower income are often further away from the city center and less accessible by public transport, which altogether results in longer travel times and decreased mobility. The coefficients `white_pct`, `black_pct`, and `distance` are all positive, implying that it is faster to get to the closer polygons or those in which there is a lower percentage of white and black residents from the Washington Monument. Although it makes intuitive sense that distance is positively correlated with time, it does not come as natural to think about why there might be such positive relationship between racial proportion of whites and blacks with travel times. Based on the visualizations, the fact that the predominantly black areas are seen further east while the predominantly white areas are seen further west indicates that the variation observed in mean travel times can be explained by the variation in geographical distance and inherent accessibility in areas dominated by certain races. Furthermore, it is not surprising that `n_roads`, `n_transit`, and `distance` all have significant $p$-values as they are generally the primary predictors that contribute to the estimation of travel times.
 
-Now we consider our second spatial autoregressive model which looks at how mean travel times is affected by the estimated demographics in each census tract during and after inauguration. The coefficients from the second model stay consistent with our observation in the first model, that `white_pct`, `black_pct`, and `distance` are positive while `med_income_pct`, `asian_pct`,`public_transit_pct`, `car_transit_pct`, `n_roads`, `n_transit` are negative. Then, we fit a spatial autoregressive model of the difference in mean travel times between the two time periods with the demographic variables to see how urban mobility is affected by the influx of people coming to Washington D.C. during the shock events. Here, while most of the coefficients match with what we see above, `public_transit`, `n_roads`, and `n_transit` are indeed positive rather than negative. This implies that the difference in mean travel times increases as the number of roads in a polygon increases, which seems counterintuitive at first since we expect that these factors should increase transportation efficiency, however, rising traffic jam due to the surge in people coming to these massive events might be the potential cause of decreased mobility regardless. Overall, we find no indicator of a significant difference in travel times as well as a direct impact of the demographics on travel times before and after the shock events in Washington D.C.
+Now we consider our second spatial autoregressive model which looks at how mean travel times are affected by the estimated demographics in each census tract during and after inauguration. The coefficients from the second model stay consistent with our observation in the first model, that `white_pct`, `black_pct`, and `distance` are positive while `med_income_pct`, `asian_pct`,`public_transit_pct`, `car_transit_pct`, `n_roads`, `n_transit` are negative. Then, we fit a spatial autoregressive model of the difference in mean travel times between the two time periods with the demographic variables to see how urban mobility is affected by the influx of people coming to Washington D.C. during the shock events. Here, while most of the coefficients match with what we see above, `public_transit`, `n_roads`, and `n_transit` are indeed positive rather than negative. This implies that the difference in mean travel times increases as the number of roads in a polygon increases, which seems counterintuitive at first since we expect that these factors should increase transportation efficiency, however, rising traffic jam due to the surge in people coming to these massive events might be the potential cause of decreased mobility regardless. Overall, we find no indicator of a significant difference in travel times as well as a direct impact of the demographics on travel times before and after the shock events in Washington D.C.
 
 ## Conclusions
