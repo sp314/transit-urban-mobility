@@ -1,12 +1,27 @@
 ---
-title: "Impact of the 2016 Presidential Election on Urban Mobility: Who is Affected the Most?"
+title: "Impact of the High Population Events on Urban Mobility: Who is Affected the Most?"
+author: "Jane Roarty, Kieu Giang Nguyen, Son Phan"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
-  html_document:
-    df_print: paged
-    theme: cerulean
-bibliography: "Library.bib"
-abstract: "This project explores mobility in Washington, D.C. in normal coditions and during highly populated events that shock the system. Washington is significant as the city's capital and therefore a host of major events. Washington is also known for the segregation, like many United States major cities. Because of these reasons, it is important to model mobility throughout the city and the metropolitan area. Specifically, this paper models normal traffic conditions in Washington and conditions during the 2017 inauguration and subsequent Women's March by using Spacial Autoregressive Models."
+  pdf_document: default
+bibliography: Library.bib
+header-includes:
+     - \usepackage{longtable}
+     - \usepackage{float}
+abstract: "This project explores mobility in Washington, D.C. in normal conditions and during highly populated events that create a shock to the transportation system. Washington is significant as the nation's capital and therefore a host of major events. Washington is also a considerably segregated city. Because of the frequent events and segregation, it is important to model mobility throughout the city and the metropolitan area. Specifically, this paper models normal traffic conditions in Washington and conditions during the 2017 inauguration and subsequent Women's March by using Spatial Autoregressive Models."
 ---
+
+## Introduction
+
+This paper explores mobility in Washington, D.C. during major events such as the 2017 women's march and inauguration. On January 20, 2017, Donald Trump was inaugurated in Washington. The following day, January 21, hundreds of thousands of people protested Trump's inauguration through the Women's March. The women's march in Washington has been called the largest protest in the United States with an estimated 470,000 people in attendance [@wallace_parlapiano_2017]. Crowd scientists estimate that the crowd at the Trump inauguration was about a third of the size, making it around 160,000 people [@wallace_parlapiano_2017]. Population increases of this size over the course of just one weekend creates a huge shock to the transportation system. Before modeling this impact, however, we first modeled the impact of demographic census data on travel time during normal January conditions. We then were able to observe how demographics impact mobility and how those factors are exacerbated during major shocks to the system. We found that the number of roads, distance to the Washington Monument, and the number of black residents are consistently the most significant predictors of travel time to each polygon from the Washington Monument. Further, we found that ________ ADD FINDINGS ABOUT SIGNIFICANCE DURING SHOCK!!!  
+
+It is important to examine urban mobility in two ways. First, city attributes such as road or transit access make certain areas more accessible. Unfortunately, accessibility or mobility often falls along racial or class lines. Washington is highly segregated and by using a spatial autoregressive model on travel time to the Washington Monument during normal times, we are able to see the impact of race on D.C. area mobility. We observed that the population of black residents in a census tract is one of the few significant variables in predicting travel time to the Washington Monument. Second, major increases in population during special events can shock the city's infrastructure. For this reason, we looked at Washington because it is a city that is especially significant during major national events such as the inauguration and therefore attracts huge numbers of additional visitors. We used a similar spatial autoregressive model for the week of the inauguration and Women's March and then modeled the differences between the normal weeks and the inauguration and march to observe the shock on the system. Through modeling both before and during the major events, we were able to observe both demographic significance of travel time and the impact of major population changes on the system.  
+
+In order to examine the shock from these massive events, we used areal Uber data which includes travel times between various census tract locations in the DC metropolitan area. To model travel times before and during the event periods, we isolated a location and looked only at the travel time between each census tract in the Washington metropolitan area and the Washington Monument. We chose the Washington Monument as the destination because it is in the middle of the National Mall, where many significant events, including the inauguration and women's march, took place. Because the shape files are census tracts, we were able to include census information for each polygon through the `tidycensus` package. This data allowed us to address the impact of demographics on travel time.  
+
+## Literature Review
+
+Many scholars have studied both mobility and shocks to the system in a variety of contexts. It is important to closely study every city's transportation system which is why many studies have been conducted. Noulas et. al use a network called Foursquare which records peoples locations to track and model mobility in a number of different cities [@noulas2012tale]. Studies about mobility and accessibility have been conducted in many cities including New York City [@litman2017evaluating] where concepts such as accessibility can be quantified and modeled to demonstrate lapses in the system. Shocks to transportation systems have also been modeled by a number of scholars. Donovan and Work's 2017 study uses taxi data to model the impacts of major events such as hurricane Sandy on New York city [@donovan2017empirically]. Wang also modeled the impact of Hurricane Sandy on New York city by looking at images of people throughout the city [@wang2014quantifying]. Other major events modeled by scholars include the Olympics [@friedman2001impact] and the World Cup [@de2014transportation]. Scholars have used a variety of data sources to observe the mobility of people including the taxi data and images as mentioned above, and cell phone data [@calabrese2010geography]. Uber data is accessible and also provides an indication of mobility since so many people travel in cars. Because of this accessibility, we decided to model the inauguration and Women's March in Washington, D.C., two major events that occurred back to back. 
 
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -16,8 +31,8 @@ library(tigris)
 library(spdep)
 library(spatialreg)
 library(ape)
-require(geeM)
-require(geepack)
+
+knitr::opts_chunk$set(fig.width=6, fig.height=3, echo = FALSE, message=FALSE, warnings=FALSE, fig.pos = 'H', fig.align='center')
 
 #tigris package - contains roads for DC
 options(tigris_class="sf")
@@ -29,51 +44,11 @@ load("data/dc_roads.RData")
 theme_map <- theme_void()
 ```
 
-Data is taken from [here](https://movement.uber.com/?lang=en-US) from the "Travel Times" dataset for Boston. We want to look at how different transit policies impact the travel times within a city.
-
-This research will first look at how travel times across Washington D.C. generally vary before and during the 2016 presidential election. We will then explore variations of this across different neighborhoods, income, and racial divides to examine bottlenecks in mobility for different identity groups. This research will contribute in explaining and interpreting variations in urban mobility during major events. It adds to the limited literature covering congestion capacity during agglomerating events such as the Olympics, natural disasters, and major holidays. It also aims to contribute by identifying heterogeneity across different socioeconomic barriers to better inform urban policy and planning aiming for equitable mobility.
-
-## Introduction
-
-
-This paper explores mobility in Washington, D.C. during major events such as the 2017 women's march and inauguration. On January 20, 2017, Donald Trump was inaugurated in Washington. The following day, January 21, was the women's march and protest against the new president. The women's march in Washington has been called the largest protest in the United States with an estimated 470,000 people in attendence [@wallace_parlapiano_2017]. Crowd scientists estimate that the crowd at the Trump inauguration was about a third of the size, making it around 160,000 people [@wallace_parlapiano_2017]. We also examined the impact of demographic census data on travel time during normal conditions in the same time of year and then during the event to observe how demographics impact mobility and how those factors are exacerbated during major shocks to the system. We found that the number of roads, distance to the Washington Monument, and the number of black residents are consistently the most significant predictors of travel time to the Washington Monument. Further, we found that ________ ADD FINDINGS ABOUT SIGNIFICANCE DURING SHOCK!!!   
-
-It is important to examine urban mobility in two ways. First, city attributes such as road or transit access make certain areas more accessible. Unfortunately, accessibility or mobility can often fall along racial or class lines. Washington is highly segregated and by using a spacial autoregressive model on travel time to the Washington Monument during normal times, we are able to see the impact of race on D.C. area mobility. We observed that the population of black residents in a census tract is one of few significant variables in predicting travel time to the Washington Monument. Second, major increases in population during special events can shock the city's infrastructure. For this reason, we looked at Washington because it is a city that is especially significant during major national events such as the inauguration and attracts huge numbers of additional visitors. We used a similar spacial autoregressive model for the week of the inauguration and Women's March and then modeled the differences between the normal weeks and the inauguration and march to observe the shock on the system. Through modeling both before and during the major events, we were able to observe both demographic significance of travel time and the impact of major population changes on the system.  
-
-In order to examine the shock from these massive events, we used areal Uber data which includes travel times between various census tract locations in the DC metropolitan area. To model travel times before and during the event periods, we isolated a location and looked only at the travel time between each census tract in the Washington metropolitan area and the Washington Monument. We chose the Washington Monument as the destination because it is in the middle of the National Mall where many significant events including the inauguration and women's march took place. Because the shape files are census tracts, we were able to include census information for each polygon through the `tidycensus` package. This data allowed us to address the impact of demographics on travel time.
-
-
-* Explain traffic/congestion/mobility with statistics etc.
-* Explain how these factors are magnified during a major event like the Olympics
-* Tie in how different people may be affected (?)
-* Start introducing the 2016 Election
-
-According to the New York Times, crowd scientists estimated 470,000 people were at the women’s march in Washington on January 21st, 2017. They say that the crowd at the women’s march was about three times the size of the crowd at the Trump inauguration, making the crowd roughly 160,000 people at the Trump inauguration.
-https://www.nytimes.com/interactive/2017/01/22/us/politics/womens-march-trump-crowd-estimates.html
-The 2010 data set of demographic information by census tracts comes from Urban Institute:
-
-```{r centroids}
+```{r centroids_dist}
+# Dataset with acs and geometries
 dc_acs_tracts$centroids <- st_centroid(st_geometry(dc_acs_tracts), of_largest_polygon)
 
-plot(st_geometry(dc_acs_tracts), border="grey")
-plot(dc_acs_tracts$centroids, add=TRUE, col="blue", cex = 0.3)
-```
-
-```{r join_sf}
-centroids <- data.frame(cbind(st_coordinates(st_centroid(dc_acs_tracts))))
-
-centroids <- centroids %>%
-  mutate(GEOID = dc_acs_tracts$GEOID)
-
-dc_acs_tracts <- left_join(x = dc_acs_tracts, y = centroids, by = "GEOID")
-
-travel_time_sf <- left_join(x = travel_times_census_join, y = dc_acs_tracts, by = "GEOID") %>%
-	st_as_sf() %>%
-	st_transform(crs = 102285)
-```
-
-```{r dist_to_center march_inaug}
-# Compute distance from Washington Monument
+# Compute distance from Washington Monument and put into spatial format
 mnm <- tribble(
   ~latitude, ~longitude,
   38.8895, -77.0353
@@ -83,19 +58,32 @@ mnm_sf <- mnm %>%
   st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>%
   st_transform(crs = 102285)
 
-travel_time_sf <- travel_time_sf %>%
-  mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE),
-  			 march_inaug = ifelse((year == 2017 & month == 1 & week %in% c(3, 4)), 1, 0))
+dc_acs_tracts <- dc_acs_tracts %>%
+	mutate(distance = st_distance(centroids, mnm_sf$geometry, by_element = TRUE), 
+				 n_roads = lengths(st_intersects(geometry, dc_roads)),
+				 n_transit = lengths(st_intersects(geometry, metro_line)))
+
+# plot(st_geometry(dc_acs_tracts), border="grey")
+# plot(dc_acs_tracts$centroids, add=TRUE, col="blue", cex = 0.3)
 ```
+
+```{r join_sf}
+travel_time_sf <- left_join(x = travel_times_census_join, y = dc_acs_tracts, by = "GEOID") %>%
+	st_as_sf() %>%
+	st_transform(crs = 102285) %>%
+	mutate(march_inaug = ifelse((year == 2017 & month == 1 & week %in% c(3, 4)), 1, 0))
+```
+
+
 
 ```{r map_travel_time}
 map_lims <- st_bbox(dc_acs_tracts)
 
-travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
-	ggplot() +
-	geom_sf(mapping = aes(fill = mean_travel_time), lwd=0.2) +
-	geom_sf(data = travel_time_sf$centroids, cex = 0.5) +
-	scale_fill_viridis_c(direction = -1)
+# travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
+# 	ggplot() +
+# 	geom_sf(mapping = aes(fill = mean_travel_time), lwd=0.2) +
+# 	geom_sf(data = travel_time_sf$centroids, cex = 0.5) +
+# 	scale_fill_viridis_c(direction = -1)
 
 travel_time_sf %>% filter(year == 2017, month == 1, week == 4) %>%
 	ggplot() +
@@ -110,82 +98,53 @@ travel_time_sf %>% filter(year == 2017, month == 1, week == 4) %>%
 ```{r map_acs}
 travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	ggplot() +
-	geom_sf(mapping = aes(fill = med_incomeE)) +
-	theme_map +
-	scale_fill_viridis_c()
-```
-
-```{r map_acs}
-travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
-	ggplot() +
-	geom_sf(mapping = aes(fill = blackE)) +
+	geom_sf(mapping = aes(fill = med_income)) +
 	theme_map +
 	scale_fill_viridis_c()
 
 travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
 	ggplot() +
-	geom_sf(mapping = aes(fill = car_transitE)) +
+	geom_sf(mapping = aes(fill = black_pct)) +
+	theme_map +
+	scale_fill_viridis_c()
+
+travel_time_sf %>% filter(year == 2017, month == 1, week == 3) %>%
+	ggplot() +
+	geom_sf(mapping = aes(fill = car_transit_pct)) +
 	theme_map +
 	scale_fill_viridis_c()
 ```
+
 
 ## Modeling
 
-```{r}
-travel_time_sf$NumRoads <- sapply(st_intersects(travel_time_sf,dc_roads),length)
-travel_time_sf$NumMetro <- sapply(st_intersects(travel_time_sf,metro_line),length)
-
-# Average travel times over weeks 1 and 2 in January (before inauguration)
-weeks12 <- travel_time_sf %>%
-  filter(year %in% 2017) %>%
-  filter(month %in% 1) %>%
-  filter(week %in% 1:2) %>%
-  select(GEOID,mean_travel_time) %>%
-  as.data.frame() %>%
+```{r travel_time_diff}
+# Average travel times over weeks 1 and 2 in January (before inauguration) and 1 and 2 in February (after inauguration)
+non_treat <- travel_times_census_join %>%
+  filter(year %in% 2017, month %in% 1:2, week %in% 1:2) %>%
+  select(GEOID, mean_travel_time) %>%
   group_by(GEOID) %>%
-  summarize(MeanTimeNorm = mean(mean_travel_time))
-
-weeks12_data <- travel_time_sf %>%
-  filter(year %in% 2017) %>%
-  filter(month %in% 1) %>%
-  filter(week %in% c(1:2)) %>%
-  distinct(GEOID, .keep_all = TRUE) %>%
-  dplyr::select(GEOID, starts_with('med_'), starts_with('white'), starts_with('asian'), starts_with('black'), starts_with('car_trans'), starts_with('public_trans'), NumRoads, NumMetro, distance) %>%
-  left_join(weeks12, by = 'GEOID')
+  summarize(MeanTimeNonTreat = mean(mean_travel_time))
 
 # Average travel times over weeks 3 and 4 in January (during & after inauguration)
-weeks34 <- travel_time_sf %>%
-  filter(year %in% 2017) %>%
-  filter(month %in% 1) %>%
-  filter(week %in% 3:4) %>%
-  select(GEOID,mean_travel_time) %>%
+treat <- travel_time_sf %>%
+	filter(year %in% 2017, month %in% 1, week %in% 3:4) %>%
+  select(GEOID, mean_travel_time) %>%
   as.data.frame() %>%
   group_by(GEOID) %>%
-  summarize(MeanTimeIng = mean(mean_travel_time))
-
-weeks34_data <- travel_time_sf %>%
-  filter(year %in% 2017) %>%
-  filter(month %in% 1) %>%
-  filter(week %in% c(3:4)) %>%
-  distinct(GEOID, .keep_all = TRUE) %>%
-  dplyr::select(GEOID, starts_with('med_'), starts_with('white'), starts_with('asian'), starts_with('black'), starts_with('car_trans'), starts_with('public_trans'), NumRoads, NumMetro, distance) %>%
-  left_join(weeks34, by = 'GEOID')
+  summarize(MeanTimeTreat = mean(mean_travel_time))
 
 # Take difference in average travel times before and after inauguration
-weeksdiff <- left_join(weeks12, weeks34) %>%
-  mutate(diffMeanTime = MeanTimeIng - MeanTimeNorm)
+weeks_diff <- left_join(non_treat, treat) %>%
+  mutate(MeanTimeDiff = MeanTimeTreat - MeanTimeNonTreat)
 
-weeksdiff_data <- travel_time_sf %>%
-  filter(year %in% 2017) %>%
-  filter(month %in% 1) %>%
-  filter(week %in% 1) %>%
-  dplyr::select(GEOID, med_incomeE, med_incomeM, asianE, asianM, blackE, blackM, public_transitE, public_transitM, car_transitE, car_transitM, NumRoads, NumMetro, distance) %>%
-  left_join(weeksdiff, by = 'GEOID')
+travel_time_diff <- dc_acs_tracts %>%
+	left_join(weeks_diff, by = 'GEOID')
 ```
 
 Normal Mean Time Model
 
-```{r}
+```{r neighborhood_struct}
 st_queen <- function(a, b = a) st_relate(a, b, pattern = "F***T****")
 as.nb.sgbp <- function(x, ...) {
   attrs <- attributes(x)
@@ -194,40 +153,29 @@ as.nb.sgbp <- function(x, ...) {
   class(x) <- "nb"
   x
 }
+
+queen <- as.nb.sgbp(st_queen(travel_time_diff))
+W <- nb2mat(queen, style='B', zero.policy = TRUE)
+listW <- nb2listw(queen)
 ```
 
-```{r}
-queen12 <- as.nb.sgbp(st_queen(weeks12_data))
-W <- nb2mat(queen12, style='B', zero.policy = TRUE)
-listW <- nb2listw(queen12)
+```{r SAR_models}
+dc_sar_nontreat <- spautolm(formula = MeanTimeNonTreat ~ med_income + asian_pct + black_pct + public_transit_pct + car_transit_pct + n_roads + n_transit + distance, data = travel_time_diff, listw = listW, family = "SAR")
 
-dc_sar_12 <- spautolm(formula = MeanTimeNorm ~ med_incomeE + med_incomeM + asianE + asianM + blackE + blackM + public_transitE + public_transitM + car_transitE + car_transitM + NumRoads + NumMetro + distance, data = weeks12_data, listw = listW, family = "SAR")
+dc_sar_treat <- spautolm(formula = MeanTimeTreat ~ med_income + asian_pct + black_pct + public_transit_pct + car_transit_pct + n_roads + n_transit + distance, data = travel_time_diff, listw = listW, family = "SAR")
 
-summary(dc_sar_12)
-# plot(weeks12["mean_travel_time"])
-# plot(queen12, weeks12$centroids, col="blue", cex = 0.5, lwd = 0.5)
-```
+summary(dc_sar_nontreat)
+summary(dc_sar_treat)
 
-```{r CSR_test}
-queen34 <- as.nb.sgbp(st_queen(weeks34_data))
-W <- nb2mat(queen34, style='B', zero.policy = TRUE)
-listW <- nb2listw(queen34)
-
-dc_sar_34 <- spautolm(formula = MeanTimeIng ~ med_incomeE + med_incomeM + asianE + asianM + blackE + blackM + public_transitE + public_transitM + car_transitE + car_transitM + NumRoads + NumMetro + distance, data = weeks34_data, listw = listW, family = "SAR")
-
-summary(dc_sar_34)
-# plot(weeks34["mean_travel_time"])
-# plot(queen34, weeks34$centroids, col="blue", cex = 0.5, lwd = 0.5)
+# hist(travel_time_diff$diffMeanTime)
+# plot(st_geometry(dc_acs_tracts), border="grey")
+# plot(queen12, travel_time_diff$centroids, col="blue", cex = 0.5, lwd = 0.5, add = TRUE)
 ```
 
 Difference Model
 
 ```{r}
-queen_diff <- as.nb.sgbp(st_queen(weeksdiff_data))
-W <- nb2mat(queen_diff, style='B', zero.policy = TRUE)
-listW <- nb2listw(queen_diff)
-
-dc_sar_diff <- spautolm(formula = diffMeanTime ~ med_incomeE + med_incomeM + asianE + asianM + blackE + blackM + public_transitE + public_transitM + car_transitE + car_transitM + NumRoads + NumMetro + distance, data = weeksdiff_data, listw = listW, family = "SAR")
+dc_sar_diff <- spautolm(formula = MeanTimeDiff ~ med_income + asian_pct + black_pct + public_transit_pct + car_transit_pct + n_roads + n_transit + distance, data = travel_time_diff, listw = listW, family = "SAR")
 
 summary(dc_sar_diff)
 ```
@@ -240,8 +188,8 @@ travel_time_sf_nontreat <- travel_time_sf %>%
 	summarise(mtt_mean = mean(mean_travel_time),
 						mtt_var = var(mean_travel_time),
 						mtt_sd = sd(mean_travel_time),
-						NumRoads = log(mean(NumRoads) + 0.0001),
-						NumMetro = log(mean(NumMetro + 0.0001)))
+						log_roads = log(mean(n_roads) + 0.000001),
+						log_transit = log(mean(n_transit) + 0.000001))
 ```
 
 ```{r}
@@ -259,13 +207,13 @@ travel_time_sf_nontreat %>%
 
 travel_time_sf_nontreat %>%
 	ggplot() +
-	geom_sf(mapping = aes(fill = NumRoads)) +
+	geom_sf(mapping = aes(fill = log_roads)) +
 	theme_map +
 	scale_fill_viridis_c()
 
 travel_time_sf_nontreat %>%
 	ggplot() +
-	geom_sf(mapping = aes(fill = NumMetro)) +
+	geom_sf(mapping = aes(fill = log_transit)) +
 	theme_map +
 	scale_fill_viridis_c()
 ```

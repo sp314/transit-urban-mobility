@@ -9,15 +9,11 @@ census_api_key("c1158c3b735c3708ba05dd80bf17f753fb52a247", install = TRUE)
 load("data/dc_tracts.RData")
 
 # Look at and choose what acs variables we want to include
-<<<<<<< HEAD
 # v17 <- load_variables(2017, "acs5", cache = TRUE)
 # View(v17)
 
-=======
-v17 <- load_variables(2017, "acs5", cache = TRUE)
-View(v17)
->>>>>>> 90d0dfccc33e9aeebbe836cd0e414c2640f5bf30
-acs_vars <- c(med_income = "B19013_001", 
+acs_vars <- c(population = "B01003_001",
+							med_income = "B19013_001", 
 							med_age = "B01002_001", 
 							white = "B02001_002", 
 							asian = "B02001_005", 
@@ -38,7 +34,15 @@ dc_acs <- rbind(get_acs(geography = "tract", variables = acs_vars, state = "DC",
 													get_acs(geography = "tract", variables = acs_vars, state = "MD", output = "wide"))
 
 # Join acs data on the census tracts of interest (those in the Uber movement dataset)
-dc_acs_tracts <- left_join(x = dc_tracts, y = dc_acs, by = "GEOID")
+dc_acs_tracts <- left_join(x = dc_tracts, y = dc_acs, by = "GEOID") %>%
+	mutate(med_income = med_incomeE,
+				 black_pct = blackE/populationE,
+				 asian_pct = asianE/populationE,
+				 public_transit_pct = public_transitE/populationE,
+				 car_transit_pct = car_transitE/populationE,
+				 bachelor_pct = bachelor_degE/populationE
+				 ) %>%
+	select(GEOID, NAME, med_income, asian_pct, black_pct, public_transit_pct, car_transit_pct, bachelor_pct)
 
 # # Save joined acs data by tract
-# save(dc_acs_tracts, file = "data/dc_acs_tracts.RData")
+save(dc_acs_tracts, file = "data/dc_acs_tracts.RData")
